@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+
+# Database files
+*.db
+*.db-wal
+*.db-shm
+instance/
+database.db
+academy.db
+
+# Backups folder
+backups/
+
+# Secret key (auto-generated)
+instance/.secret_key
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.backup
+app_backup.py

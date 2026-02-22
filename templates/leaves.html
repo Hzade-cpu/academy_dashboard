@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Management — Academy Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            margin: 0;
+            padding: 30px;
+            background: #000000;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: auto;
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-purple { background: #8b5cf6; color: white; }
+        .btn-dark { background: #1e293b; color: white; }
+        .btn-orange { background: #f97316; color: white; }
+        .btn-teal { background: #14b8a6; color: white; }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 13px;
+        }
+
+        .filter-bar select {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            background: white;
+            cursor: pointer;
+            min-width: 140px;
+        }
+
+        .filter-bar select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .stat-card h3 {
+            margin: 0 0 5px 0;
+            font-size: 13px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .stat-card.blue { border-left: 4px solid #3b82f6; }
+        .stat-card.green { border-left: 4px solid #10b981; }
+        .stat-card.orange { border-left: 4px solid #f97316; }
+        .stat-card.purple { border-left: 4px solid #8b5cf6; }
+
+        /* Section Cards */
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Grid Layout */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1000px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-casual { background: #dbeafe; color: #1d4ed8; }
+        .badge-sick { background: #fee2e2; color: #dc2626; }
+        .badge-paid { background: #dcfce7; color: #16a34a; }
+        .badge-unpaid { background: #fef3c7; color: #d97706; }
+        .badge-weekoff { background: #f0fdf4; color: #15803d; border: 1px dashed #86efac; }
+        .badge-ot { background: #fdf4ff; color: #a855f7; border: 1px solid #e879f9; }
+        .badge-emergency { background: #fce7f3; color: #db2777; }
+        .badge-other { background: #e2e8f0; color: #475569; }
+
+        /* Remarks */
+        .remarks {
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .remarks:hover {
+            white-space: normal;
+            overflow: visible;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #0f172a;
+        }
+
+        .close-modal {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #64748b;
+        }
+
+        .close-modal:hover {
+            background: #e2e8f0;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Action buttons in table */
+        .action-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+
+        /* Leave Summary Table */
+        .summary-table {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Date display */
+        .date-display {
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        /* ================= DARK THEME ================= */
+        body.dark-theme {
+            background: #0f0f0f;
+        }
+
+        body.dark-theme .container {
+            background: #1a1a1a;
+            color: #e5e7eb;
+        }
+
+        body.dark-theme .header {
+            border-bottom-color: #374151;
+        }
+
+        body.dark-theme .header h1 {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme .filter-bar {
+            background: #1e293b;
+        }
+
+        body.dark-theme .filter-bar label {
+            color: #e5e7eb;
+        }
+
+        body.dark-theme .filter-bar select {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-color: #374151;
+        }
+
+        body.dark-theme .stat-card {
+            background: #1e293b;
+        }
+
+        body.dark-theme .stat-card h3 {
+            color: #9ca3af;
+        }
+
+        body.dark-theme .stat-card .value {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme .section {
+            background: #1e293b;
+        }
+
+        body.dark-theme .section-header {
+            border-bottom-color: #374151;
+        }
+
+        body.dark-theme .section-title {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme table {
+            background: #1e293b;
+        }
+
+        body.dark-theme th {
+            background: #0f172a;
+            color: #e5e7eb;
+        }
+
+        body.dark-theme td {
+            border-bottom-color: #374151;
+            color: #e5e7eb;
+        }
+
+        body.dark-theme tr:hover {
+            background: #1e3a5f;
+        }
+
+        body.dark-theme .modal-content {
+            background: #1a1a1a;
+            color: #e5e7eb;
+        }
+
+        body.dark-theme .modal-header {
+            border-bottom-color: #374151;
+        }
+
+        body.dark-theme .modal-header h2 {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme .close-modal {
+            background: #374151;
+            color: #e5e7eb;
+        }
+
+        body.dark-theme .close-modal:hover {
+            background: #4b5563;
+        }
+
+        body.dark-theme .form-group label {
+            color: #e5e7eb;
+        }
+
+        body.dark-theme .form-group input,
+        body.dark-theme .form-group select,
+        body.dark-theme .form-group textarea {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-color: #374151;
+        }
+
+        body.dark-theme .remarks {
+            color: #9ca3af;
+        }
+
+        body.dark-theme .date-display {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme .empty-state {
+            color: #9ca3af;
+        }
+
+        /* ================= LIGHT THEME ================= */
+        body.light-theme {
+            background: #f1f5f9;
+        }
+
+        body.light-theme .container {
+            background: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<script>
+// Load theme preference from localStorage
+function loadThemePreference() {
+    const saved = localStorage.getItem('dashboardPreferences');
+    if (saved) {
+        const prefs = JSON.parse(saved);
+        const isDark = prefs['dark-theme'] !== false;
+        document.body.classList.toggle('dark-theme', isDark);
+        document.body.classList.toggle('light-theme', !isDark);
+    } else {
+        document.body.classList.add('dark-theme');
+    }
+}
+loadThemePreference();
+</script>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Leave Management
+            </h1>
+            <div class="header-actions">
+                <button class="btn btn-success" onclick="openModal('addLeaveModal')">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Add Leave
+                </button>
+                <a href="/coaches" class="btn btn-purple">👥 Coaches</a>
+                <a href="/analytics" class="btn btn-secondary">📊 Analytics</a>
+                <a href="/" class="btn btn-dark">🏠 Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>Year:</label>
+                <select onchange="applyFilters()" id="yearSelect">
+                    {% for y in range(2024, 2031) %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Month:</label>
+                <select onchange="applyFilters()" id="monthSelect">
+                    <option value="All" {% if selected_month == 'All' %}selected{% endif %}>All Months</option>
+                    {% for m in calendar_months %}
+                    <option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Center:</label>
+                <select onchange="applyFilters()" id="centerSelect">
+                    <option value="">All Centers</option>
+                    {% for center in centers %}
+                    <option value="{{ center[0] }}" {% if center[0]|string == selected_center %}selected{% endif %}>{{ center[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Coach:</label>
+                <select onchange="applyFilters()" id="coachSelect">
+                    <option value="">All Coaches</option>
+                    {% for coach in coaches %}
+                    <option value="{{ coach[0] }}" {% if coach[0]|string == selected_coach %}selected{% endif %}>{{ coach[1] }} ({{ coach[2] }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear Filters</button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <h3>Total Leave Days ({{ year }})</h3>
+                <div class="value">{{ total_leave_days }}</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #ef4444;">
+                <h3>LOP Days (Unpaid)</h3>
+                <div class="value" style="color: #ef4444;">{{ total_lop_days }}</div>
+            </div>
+            <div class="stat-card green">
+                <h3>Approved Days</h3>
+                <div class="value">{{ total_leave_days - total_lop_days }}</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #22c55e;">
+                <h3>Week Off Days</h3>
+                <div class="value" style="color: #15803d;">{{ total_weekoff_days }}</div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #a855f7;">
+                <h3>OT Days</h3>
+                <div class="value" style="color: #a855f7;">{{ total_ot_days }}</div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid-2">
+            <!-- Monthly Leave Chart -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Monthly Leave Distribution
+                    </span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Leave Type Breakdown -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
+                        </svg>
+                        Leave Type Breakdown
+                    </span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="typeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid-2">
+            <!-- Leave Records Table -->
+            <div class="section" style="grid-column: span 1;">
+                <div class="section-header">
+                    <span class="section-title">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        Leave Records
+                    </span>
+                    <span style="color: #64748b; font-size: 13px;">{{ leaves|length }} records</span>
+                </div>
+                
+                {% if leaves %}
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Days</th>
+                                <th>Coach</th>
+                                <th>Center</th>
+                                <th>Type</th>
+                                <th>Remarks</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in leaves %}
+                            <tr>
+                                <td class="date-display">{{ leave[4] }}</td>
+                                <td class="date-display">{{ leave[5] }}</td>
+                                <td style="text-align: center; font-weight: 600;">
+                                    <span style="background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 10px; font-size: 12px;">
+                                        {{ leave[9] }}
+                                    </span>
+                                </td>
+                                <td>{{ leave[2] }}</td>
+                                <td>{{ leave[3] }}</td>
+                                <td>
+                                    <span class="badge badge-{{ leave[6]|lower|replace(' ', '') }}">{{ leave[6] }}</span>
+                                </td>
+                                <td class="remarks" title="{{ leave[7] or 'No remarks' }}">
+                                    {{ leave[7] or '—' }}
+                                </td>
+                                <td class="action-btns">
+                                    <button class="btn btn-primary btn-sm" onclick="editLeave({{ leave[0] }}, {{ leave[1] }}, '{{ leave[4] }}', '{{ leave[5] }}', '{{ leave[6] }}', '{{ leave[7]|replace("'", "\\'") if leave[7] else '' }}')">Edit</button>
+                                    <form method="POST" style="display: inline;" onsubmit="return confirm('Delete this leave record?')">
+                                        <input type="hidden" name="action" value="delete_leave">
+                                        <input type="hidden" name="leave_id" value="{{ leave[0] }}">
+                                        <button type="submit" class="btn btn-danger btn-sm">Del</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <p>No leave records found for the selected filters.</p>
+                    <button class="btn btn-success" onclick="openModal('addLeaveModal')">Add First Leave</button>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Coach Leave Summary -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Coach Leave Summary ({{ year }})
+                    </span>
+                </div>
+                <div class="summary-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Coach</th>
+                                <th>Center</th>
+                                <th style="text-align: center;">LOP</th>
+                                <th style="text-align: center;">Approved</th>
+                                <th style="text-align: center;">Week Off</th>
+                                <th style="text-align: center;">OT</th>
+                                <th style="text-align: center;">Total Leave</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in leave_stats %}
+                            <tr>
+                                <td>{{ stat[1] }}</td>
+                                <td>{{ stat[2] }}</td>
+                                <td style="text-align: center;">
+                                    <span style="background: {% if (stat[4] or 0) > 5 %}#fee2e2{% elif (stat[4] or 0) > 0 %}#fef3c7{% else %}#f1f5f9{% endif %}; color: {% if (stat[4] or 0) > 5 %}#dc2626{% elif (stat[4] or 0) > 0 %}#d97706{% else %}#64748b{% endif %}; padding: 4px 12px; border-radius: 20px; font-weight: 600;">
+                                        {{ (stat[4] or 0)|int }}
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span style="background: #dcfce7; color: #16a34a; padding: 4px 12px; border-radius: 20px; font-weight: 600;">
+                                        {{ (stat[5] or 0)|int }}
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span style="background: #f0fdf4; color: #15803d; padding: 4px 12px; border-radius: 20px; font-weight: 600; border: 1px dashed #86efac;">
+                                        {{ (stat[7] or 0)|int }}
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span style="background: #fdf4ff; color: #a855f7; padding: 4px 12px; border-radius: 20px; font-weight: 600; border: 1px solid #e879f9;">
+                                        {{ (stat[8] or 0)|int }}
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span style="background: {% if (stat[6] or 0) > 15 %}#fee2e2{% elif (stat[6] or 0) > 8 %}#fef3c7{% else %}#dbeafe{% endif %}; color: {% if (stat[6] or 0) > 15 %}#dc2626{% elif (stat[6] or 0) > 8 %}#d97706{% else %}#1d4ed8{% endif %}; padding: 4px 12px; border-radius: 20px; font-weight: 600;">
+                                        {{ (stat[6] or 0)|int }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Leave Modal -->
+    <div class="modal" id="addLeaveModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📅 Add Leave Record</h2>
+                <button class="close-modal" onclick="closeModal('addLeaveModal')">×</button>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="action" value="add_leave">
+                <input type="hidden" name="year" value="{{ year }}">
+                
+                <div class="form-group">
+                    <label>Coach *</label>
+                    <select name="coach_id" required>
+                        <option value="">Select Coach</option>
+                        {% for coach in coaches %}
+                        <option value="{{ coach[0] }}">{{ coach[1] }} ({{ coach[2] }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>From Date *</label>
+                        <input type="date" name="from_date" id="add_from_date" required value="{{ year }}-01-01" onchange="updateToDate('add')">
+                    </div>
+                    <div class="form-group">
+                        <label>To Date *</label>
+                        <input type="date" name="to_date" id="add_to_date" required value="{{ year }}-01-01">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: -10px;">
+                    <small style="color: #64748b;" id="add_days_info">1 day(s)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Leave Type</label>
+                    <select name="leave_type">
+                        {% for lt in leave_types %}
+                        <option value="{{ lt }}">{{ lt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Remarks</label>
+                    <textarea name="remarks" placeholder="Add any notes about this leave (reason, approval status, etc.)"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-success" style="width: 100%;">Add Leave Record</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Leave Modal -->
+    <div class="modal" id="editLeaveModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Edit Leave Record</h2>
+                <button class="close-modal" onclick="closeModal('editLeaveModal')">×</button>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="action" value="edit_leave">
+                <input type="hidden" name="leave_id" id="edit_leave_id">
+                
+                <div class="form-group">
+                    <label>Coach *</label>
+                    <select name="coach_id" id="edit_coach_id" required>
+                        {% for coach in coaches %}
+                        <option value="{{ coach[0] }}">{{ coach[1] }} ({{ coach[2] }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>From Date *</label>
+                        <input type="date" name="from_date" id="edit_from_date" required onchange="updateToDate('edit')">
+                    </div>
+                    <div class="form-group">
+                        <label>To Date *</label>
+                        <input type="date" name="to_date" id="edit_to_date" required>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: -10px;">
+                    <small style="color: #64748b;" id="edit_days_info">1 day(s)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Leave Type</label>
+                    <select name="leave_type" id="edit_leave_type">
+                        {% for lt in leave_types %}
+                        <option value="{{ lt }}">{{ lt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Remarks</label>
+                    <textarea name="remarks" id="edit_remarks" placeholder="Add any notes about this leave"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Update Leave Record</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Modal functions
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Filter functions
+        function applyFilters() {
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
+            const center = document.getElementById('centerSelect').value;
+            const coach = document.getElementById('coachSelect').value;
+            window.location.href = `/leaves?year=${year}&month=${month}&center=${center}&coach=${coach}`;
+        }
+
+        function clearFilters() {
+            window.location.href = `/leaves?year={{ year }}&month=All`;
+        }
+
+        // Edit leave function
+        function editLeave(id, coachId, fromDate, toDate, type, remarks) {
+            document.getElementById('edit_leave_id').value = id;
+            document.getElementById('edit_coach_id').value = coachId;
+            document.getElementById('edit_from_date').value = fromDate;
+            document.getElementById('edit_to_date').value = toDate;
+            document.getElementById('edit_leave_type').value = type;
+            document.getElementById('edit_remarks').value = remarks;
+            updateDaysInfo('edit');
+            openModal('editLeaveModal');
+        }
+
+        // Calculate and display days
+        function updateDaysInfo(prefix) {
+            const fromDate = document.getElementById(prefix + '_from_date').value;
+            const toDate = document.getElementById(prefix + '_to_date').value;
+            
+            if (fromDate && toDate) {
+                const from = new Date(fromDate);
+                const to = new Date(toDate);
+                const days = Math.floor((to - from) / (1000 * 60 * 60 * 24)) + 1;
+                document.getElementById(prefix + '_days_info').textContent = days + ' day(s)';
+            }
+        }
+
+        // Update to_date min value when from_date changes
+        function updateToDate(prefix) {
+            const fromDate = document.getElementById(prefix + '_from_date').value;
+            const toDateInput = document.getElementById(prefix + '_to_date');
+            
+            if (fromDate) {
+                toDateInput.min = fromDate;
+                if (toDateInput.value < fromDate) {
+                    toDateInput.value = fromDate;
+                }
+            }
+            updateDaysInfo(prefix);
+        }
+
+        // Add event listeners for to_date changes
+        document.getElementById('add_to_date').addEventListener('change', () => updateDaysInfo('add'));
+        document.getElementById('edit_to_date').addEventListener('change', () => updateDaysInfo('edit'));
+
+        // Charts
+        const monthlyData = {{ monthly_leaves|tojson|safe }};
+        const months = Object.keys(monthlyData);
+        const counts = Object.values(monthlyData);
+
+        new Chart(document.getElementById('monthlyChart'), {
+            type: 'bar',
+            data: {
+                labels: months.map(m => m.substring(0, 3)),
+                datasets: [{
+                    label: 'Leaves',
+                    data: counts,
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
+
+        // Leave type chart
+        const typeData = {{ leave_type_stats|tojson|safe }};
+        const typeLabels = typeData.map(t => t[0]);
+        const typeCounts = typeData.map(t => t[1]);
+        const typeColors = {
+            'Casual': '#3b82f6',
+            'Sick': '#ef4444',
+            'Paid': '#10b981',
+            'Unpaid': '#f97316',
+            'Emergency': '#ec4899',
+            'Other': '#64748b'
+        };
+
+        new Chart(document.getElementById('typeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: typeLabels,
+                datasets: [{
+                    data: typeCounts,
+                    backgroundColor: typeLabels.map(l => typeColors[l] || '#64748b'),
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { boxWidth: 12, padding: 15 }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

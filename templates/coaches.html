@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Management — Academy Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            margin: 0;
+            padding: 30px;
+            background: #000000;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-purple { background: #8b5cf6; color: white; }
+        .btn-dark { background: #1e293b; color: white; }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Month Selector */
+        .month-selector {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .month-selector label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .month-selector select {
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            background: white;
+            cursor: pointer;
+            min-width: 150px;
+        }
+
+        .month-selector select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .current-month-badge {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Section Cards */
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        /* Monthly Salary Calendar */
+        .salary-calendar {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+        }
+
+        .salary-month-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+        }
+
+        .salary-month-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59,130,246,0.15);
+        }
+
+        .salary-month-card.active {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+
+        .salary-month-card .month-name {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .salary-month-card .salary-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+        }
+
+        .salary-month-card .salary-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Add Coach Form */
+        .add-coach-form {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        /* Center Group */
+        .center-group {
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .center-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .center-name {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .coach-count {
+            background: #3b82f6;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .center-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toggle-details-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toggle-details-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .toggle-details-btn.active {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        /* Coach Card */
+        .coach-card {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: none;
+        }
+
+        .coach-card.visible {
+            display: block;
+        }
+
+        .coach-card:last-child {
+            border-bottom: none;
+        }
+
+        /* Hidden state summary */
+        .center-summary {
+            padding: 20px;
+            text-align: center;
+            color: #64748b;
+            background: #f8fafc;
+        }
+
+        .center-summary.hidden {
+            display: none;
+        }
+
+        .coach-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .coach-details {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .coach-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .coach-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .coach-current-salary {
+            font-size: 14px;
+            color: #10b981;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .coach-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Salary Grid */
+        .salary-grid {
+            display: none;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .salary-grid.visible {
+            display: grid;
+        }
+
+        .salary-cell {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 6px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .salary-cell.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .salary-cell.has-value {
+            background: #dcfce7;
+            border-color: #86efac;
+        }
+
+        .salary-cell .month-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .salary-cell input {
+            width: 100%;
+            padding: 6px 4px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .salary-cell input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        /* Edit Form */
+        .edit-form {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .edit-form.active {
+            display: block;
+        }
+
+        .edit-form-content {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        /* Filter */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Stats Summary */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #3b82f6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .stat-card .stat-label {
+            font-size: 13px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 5px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            color: white;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .toast.success { background: #10b981; }
+        .toast.saving { background: #f59e0b; }
+        .toast.error { background: #ef4444; }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .salary-calendar {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .salary-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            .container {
+                padding: 15px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .header-actions {
+                width: 100%;
+            }
+            .header-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+            .salary-calendar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .salary-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .add-coach-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .form-group input,
+            .form-group select {
+                width: 100%;
+            }
+            .coach-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ================= DARK THEME ================= */
+        body.dark-theme {
+            background: #0f0f0f;
+        }
+
+        body.dark-theme .container {
+            background: #1a1a1a;
+            color: #e5e7eb;
+        }
+
+        body.dark-theme .header h1 {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme .header {
+            border-bottom-color: #374151;
+        }
+
+        body.dark-theme .month-selector {
+            background: #1e293b;
+        }
+
+        body.dark-theme .month-selector label {
+            color: #e5e7eb;
+        }
+
+        body.dark-theme .month-selector select {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-color: #374151;
+        }
+
+        body.dark-theme .current-month-badge {
+            background: #1e3a5f;
+            color: #93c5fd;
+        }
+
+        body.dark-theme .section {
+            background: #1e293b;
+        }
+
+        body.dark-theme .section-header {
+            border-bottom-color: #374151;
+        }
+
+        body.dark-theme .section-title {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme .stat-card {
+            background: #1e293b;
+        }
+
+        body.dark-theme .stat-card .stat-label {
+            color: #9ca3af;
+        }
+
+        body.dark-theme .stat-card .stat-value {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme .salary-month-card {
+            background: #0f172a;
+            border-color: #374151;
+        }
+
+        body.dark-theme .salary-month-card:hover {
+            border-color: #60a5fa;
+            box-shadow: 0 4px 12px rgba(96,165,250,0.2);
+        }
+
+        body.dark-theme .salary-month-card.active {
+            background: #1e3a5f;
+            border-color: #60a5fa;
+        }
+
+        body.dark-theme .salary-month-card .month-name {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme .salary-month-card .salary-label {
+            color: #9ca3af;
+        }
+
+        body.dark-theme .form-group label {
+            color: #e5e7eb;
+        }
+
+        body.dark-theme .form-group input,
+        body.dark-theme .form-group select {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-color: #374151;
+        }
+
+        body.dark-theme .filter-bar label {
+            color: #e5e7eb;
+        }
+
+        body.dark-theme .filter-bar select {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-color: #374151;
+        }
+
+        body.dark-theme .center-group {
+            border-color: #374151;
+        }
+
+        body.dark-theme .coach-card {
+            background: #1e293b;
+            border-bottom-color: #374151;
+        }
+
+        body.dark-theme .center-summary {
+            background: #0f172a;
+            color: #9ca3af;
+        }
+
+        body.dark-theme .coach-name {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme .salary-cell {
+            background: #0f172a;
+            border-color: #374151;
+        }
+
+        body.dark-theme .salary-cell.active {
+            border-color: #60a5fa;
+            background: #1e3a5f;
+        }
+
+        body.dark-theme .salary-cell.has-value {
+            background: #14532d;
+            border-color: #22c55e;
+        }
+
+        body.dark-theme .salary-cell .month-label {
+            color: #9ca3af;
+        }
+
+        body.dark-theme .salary-cell input {
+            background: #1e293b;
+            color: #e5e7eb;
+            border-color: #4b5563;
+        }
+
+        body.dark-theme .edit-form {
+            background: #0f172a;
+        }
+
+        body.dark-theme .empty-state {
+            color: #9ca3af;
+        }
+
+        body.dark-theme .toast {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* ================= LIGHT THEME ================= */
+        body.light-theme {
+            background: #f1f5f9;
+        }
+
+        body.light-theme .container {
+            background: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>🏋️ Coach Management</h1>
+        <div class="header-actions">
+            <a href="/dashboard?month={{ month }}&year={{ year }}" class="btn btn-dark">📊 Dashboard</a>
+            <a href="/analytics?year={{ year }}" class="btn btn-purple">📈 Analytics</a>
+            <a href="/leaves?year={{ year }}" class="btn" style="background: #f97316; color: white;">📅 Leaves</a>
+            <a href="/settings" class="btn" style="background: #8b5cf6; color: white;">👤 Account</a>
+            <a href="/logout" class="btn btn-danger">🚪 Logout</a>
+        </div>
+    </div>
+
+    <!-- Month & Year Selector -->
+    <div class="month-selector">
+        <label>📅 Select Month:</label>
+        <select id="monthSelect" onchange="changeMonth()">
+            {% set months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] %}
+            {% for m in months %}
+            <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+        </select>
+        <label>📆 Year:</label>
+        <select id="yearSelect" onchange="changeMonth()">
+            {% for y in range(2024, 2031) %}
+            <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        <span class="current-month-badge">Currently viewing: {{ month }} {{ year }}</span>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">Total Coaches</div>
+            <div class="stat-value">{{ coaches|length }}</div>
+        </div>
+        <div class="stat-card" style="border-left-color: #10b981;">
+            <div class="stat-label">Total Centers</div>
+            <div class="stat-value">{{ centers|length }}</div>
+        </div>
+        <div class="stat-card" style="border-left-color: #f59e0b;">
+            <div class="stat-label">{{ month }} Total Salary</div>
+            <div class="stat-value">₹{{ "{:,.0f}".format(coaches|sum(attribute='salary')) }}</div>
+        </div>
+    </div>
+
+    <!-- Monthly Salary Overview -->
+    <div class="section">
+        <div class="section-header">
+            <h3 class="section-title">📅 Monthly Salary Overview</h3>
+        </div>
+        <div class="salary-calendar">
+            {% for k in monthly_salary %}
+            <a href="/coaches?month={{ k.month }}&year={{ year }}" class="salary-month-card {% if k.month == month %}active{% endif %}">
+                <div class="month-name">{{ k.month }}</div>
+                <div class="salary-amount">₹{{ "{:,.0f}".format(k.total_salary) }}</div>
+                <div class="salary-label">Total Salary</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Add New Coach -->
+    <div class="section">
+        <div class="section-header">
+            <h3 class="section-title">➕ Add New Coach</h3>
+        </div>
+        <form method="POST" class="add-coach-form" id="addCoachForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="add_coach">
+            <div class="form-group">
+                <label>Center</label>
+                <select name="center_id" required>
+                    {% for center in centers %}
+                    <option value="{{ center.id }}" {% if selected_center == center.id %}selected{% endif %}>{{ center.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Coach Name</label>
+                <input type="text" name="name" placeholder="Enter coach name" required>
+            </div>
+            <button type="submit" class="btn btn-success">➕ Add Coach</button>
+        </form>
+    </div>
+
+    <!-- All Coaches -->
+    <div class="section">
+        <div class="section-header">
+            <h3 class="section-title">👥 All Coaches — Salary Calendar</h3>
+            <div class="filter-bar">
+                <label style="font-weight: 600;">Filter by Center:</label>
+                <select id="centerFilter" onchange="filterByCenter()" style="padding: 8px 12px; border-radius: 8px; border: 2px solid #e2e8f0;">
+                    <option value="all">All Centers</option>
+                    {% for center in centers %}
+                    <option value="{{ center.id }}" {% if selected_center == center.id %}selected{% endif %}>{{ center.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        {% if coaches|length == 0 %}
+        <div class="empty-state">
+            <div class="empty-state-icon">👤</div>
+            <div class="empty-state-text">No coaches added yet</div>
+            <p style="color: #9ca3af;">Add your first coach using the form above</p>
+        </div>
+        {% else %}
+        {% for center in centers %}
+        {% set center_coaches = [] %}
+        {% for c in coaches %}
+            {% if c.center_id == center.id %}
+                {% set _ = center_coaches.append(c) %}
+            {% endif %}
+        {% endfor %}
+        
+        {% if center_coaches|length > 0 or not selected_center %}
+        <div class="center-group" data-center-id="{{ center.id }}" {% if selected_center and selected_center != center.id %}style="display: none;"{% endif %}>
+            <div class="center-header">
+                <span class="center-name">🏢 {{ center.name }}</span>
+                <div class="center-header-actions">
+                    <button class="toggle-details-btn" onclick="toggleCenterDetails({{ center.id }})" data-center="{{ center.id }}">
+                        <span class="toggle-icon">👁️</span>
+                        <span class="toggle-text">Show Details</span>
+                    </button>
+                    <span class="coach-count">{{ center_coaches|length }} coach{% if center_coaches|length != 1 %}es{% endif %}</span>
+                </div>
+            </div>
+            
+            <!-- Summary when hidden -->
+            <div class="center-summary" data-center-summary="{{ center.id }}">
+                🔒 Coach details hidden. Click "Show Details" to view {{ center_coaches|length }} coach{% if center_coaches|length != 1 %}es{% endif %}.
+            </div>
+            
+            {% if center_coaches|length > 0 %}
+            {% for c in coaches %}
+            {% if c.center_id == center.id %}
+            <div class="coach-card" data-center-card="{{ center.id }}">
+                <div class="coach-info">
+                    <div class="coach-details">
+                        <div class="coach-avatar">{{ c.name[0]|upper }}</div>
+                        <div>
+                            <div class="coach-name">{{ c.name }}</div>
+                            <div class="coach-current-salary">{{ month }}: ₹{{ "{:,.0f}".format(c.salary) }}</div>
+                        </div>
+                    </div>
+                    <div class="coach-actions">
+                        <button class="btn btn-primary btn-sm" onclick="toggleEdit({{ c.id }})">✏️ Edit</button>
+                        <a href="/delete_coach/{{ c.id }}?month={{ month }}&year={{ year }}" onclick="return confirm('Delete this coach and all their salary records?')">
+                            <button type="button" class="btn btn-danger btn-sm">🗑️ Delete</button>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Edit Form -->
+                <div class="edit-form" id="edit_{{ c.id }}">
+                    <form method="POST" class="edit-form-content">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="edit_coach">
+                        <input type="hidden" name="coach_id" value="{{ c.id }}">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" name="name" value="{{ c.name }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Move to Center</label>
+                            <select name="center_id" required>
+                                {% for ctr in centers %}
+                                <option value="{{ ctr.id }}" {% if ctr.id == c.center_id %}selected{% endif %}>{{ ctr.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-purple btn-sm">💾 Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEdit({{ c.id }})">Cancel</button>
+                    </form>
+                </div>
+
+                <!-- Salary Grid -->
+                <div class="salary-grid" data-center-grid="{{ center.id }}">
+                    {% for m in calendar_months %}
+                    <div class="salary-cell {% if m == month %}active{% endif %} {% if salary_by_coach.get(c.id, {}).get(m, 0) > 0 %}has-value{% endif %}">
+                        <div class="month-label">{{ m[:3] }}</div>
+                        <form method="POST" style="margin: 0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="update_salary">
+                            <input type="hidden" name="coach_id" value="{{ c.id }}">
+                            <input type="hidden" name="salary_month" value="{{ m }}">
+                            <input type="hidden" name="salary_year" value="{{ year }}">
+                            <input type="number" step="0.01" name="salary" 
+                                   value="{{ salary_by_coach.get(c.id, {}).get(m, '') or '' }}"
+                                   placeholder="0">
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% else %}
+            <div class="empty-state" style="padding: 30px;">
+                <div style="color: #9ca3af;">No coaches in this center yet</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toast"></div>
+
+<script>
+const currentMonth = '{{ month }}';
+const currentYear = '{{ year }}';
+
+// Load theme preference from localStorage
+function loadThemePreference() {
+    const saved = localStorage.getItem('dashboardPreferences');
+    if (saved) {
+        const prefs = JSON.parse(saved);
+        const isDark = prefs['dark-theme'] !== false;
+        document.body.classList.toggle('dark-theme', isDark);
+        document.body.classList.toggle('light-theme', !isDark);
+    } else {
+        // Default to dark theme
+        document.body.classList.add('dark-theme');
+    }
+}
+
+// Apply theme immediately to prevent flash
+loadThemePreference();
+
+function changeMonth() {
+    const month = document.getElementById('monthSelect').value;
+    const year = document.getElementById('yearSelect').value;
+    window.location.href = `/coaches?month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`;
+}
+
+function filterByCenter() {
+    const filter = document.getElementById('centerFilter').value;
+    const groups = document.querySelectorAll('.center-group');
+    
+    groups.forEach(group => {
+        if (filter === 'all') {
+            group.style.display = 'block';
+        } else {
+            group.style.display = group.dataset.centerId === filter ? 'block' : 'none';
+        }
+    });
+}
+
+function toggleEdit(id) {
+    const editDiv = document.getElementById('edit_' + id);
+    
+    // Close all other edit forms
+    document.querySelectorAll('.edit-form').forEach(el => {
+        if (el.id !== 'edit_' + id) {
+            el.classList.remove('active');
+        }
+    });
+    
+    editDiv.classList.toggle('active');
+}
+
+function toggleCenterDetails(centerId) {
+    const btn = document.querySelector(`.toggle-details-btn[data-center="${centerId}"]`);
+    const cards = document.querySelectorAll(`.coach-card[data-center-card="${centerId}"]`);
+    const grids = document.querySelectorAll(`.salary-grid[data-center-grid="${centerId}"]`);
+    const summary = document.querySelector(`.center-summary[data-center-summary="${centerId}"]`);
+    
+    const isVisible = btn.classList.contains('active');
+    
+    if (isVisible) {
+        // Hide
+        btn.classList.remove('active');
+        btn.querySelector('.toggle-icon').textContent = '👁️';
+        btn.querySelector('.toggle-text').textContent = 'Show Details';
+        cards.forEach(card => card.classList.remove('visible'));
+        grids.forEach(grid => grid.classList.remove('visible'));
+        if (summary) summary.classList.remove('hidden');
+        
+        // Save state
+        localStorage.removeItem(`center_details_${centerId}`);
+    } else {
+        // Show
+        btn.classList.add('active');
+        btn.querySelector('.toggle-icon').textContent = '🙈';
+        btn.querySelector('.toggle-text').textContent = 'Hide Details';
+        cards.forEach(card => card.classList.add('visible'));
+        grids.forEach(grid => grid.classList.add('visible'));
+        if (summary) summary.classList.add('hidden');
+        
+        // Save state
+        localStorage.setItem(`center_details_${centerId}`, 'visible');
+    }
+}
+
+// Restore visibility state on page load
+function restoreCenterDetailsState() {
+    document.querySelectorAll('.toggle-details-btn').forEach(btn => {
+        const centerId = btn.dataset.center;
+        if (localStorage.getItem(`center_details_${centerId}`) === 'visible') {
+            toggleCenterDetails(parseInt(centerId));
+        }
+    });
+}
+
+function showToast(message, type) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast ' + type;
+    toast.style.display = 'block';
+    
+    if (type !== 'saving') {
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+}
+
+async function saveFormData(form, refreshPage = false) {
+    showToast('Saving...', 'saving');
+    
+    try {
+        const formData = new FormData(form);
+        const res = await fetch(`/coaches?month=${encodeURIComponent(currentMonth)}&year=${encodeURIComponent(currentYear)}`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (res.ok) {
+            showToast('✓ Saved!', 'success');
+            if (refreshPage) {
+                setTimeout(() => location.reload(), 500);
+            }
+        } else {
+            showToast('Error saving', 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        showToast('Error saving', 'error');
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Restore center details visibility
+    restoreCenterDetailsState();
+    
+    // Add Coach form
+    document.getElementById('addCoachForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await saveFormData(this, true);
+        this.reset();
+    });
+    
+    // Edit Coach forms
+    document.querySelectorAll('input[name="action"][value="edit_coach"]').forEach(input => {
+        const form = input.closest('form');
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await saveFormData(form, true);
+        });
+    });
+    
+    // Salary inputs - auto-save on change
+    document.querySelectorAll('input[name="salary"]').forEach(input => {
+        input.addEventListener('change', async function() {
+            const form = this.closest('form');
+            const cell = this.closest('.salary-cell');
+            
+            cell.style.background = '#fef3c7';
+            
+            await saveFormData(form, false);
+            
+            // Flag for dashboard to refresh salary data
+            localStorage.setItem('salary_updated', Date.now().toString());
+            
+            if (parseFloat(this.value) > 0) {
+                cell.classList.add('has-value');
+                cell.style.background = '#dcfce7';
+            } else {
+                cell.classList.remove('has-value');
+                cell.style.background = '#f8fafc';
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>

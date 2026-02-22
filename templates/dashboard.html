@@ -1,0 +1,1899 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academy Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+body{
+    font-family: Inter, Segoe UI, Arial, sans-serif;
+    margin:0;
+    padding:30px;
+    padding-bottom: 90px;
+    background:#000000;
+}
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #1e293b;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+    z-index: 1000;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.bottom-nav::-webkit-scrollbar {
+    height: 0;
+    display: none;
+}
+
+.bottom-nav a {
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.bottom-nav .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.bottom-nav .nav-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.nav-btn.analytics { background: #3b82f6; color: white; }
+.nav-btn.coaches { background: #10b981; color: white; }
+.nav-btn.leaves { background: #f97316; color: white; }
+.nav-btn.account { background: #8b5cf6; color: white; }
+.nav-btn.settings { background: #64748b; color: white; }
+.nav-btn.logout { background: #ef4444; color: white; }
+
+/* Main container */
+.container{
+    max-width:1200px;
+    margin:auto;
+    background:#f8fafc;
+    padding:25px;
+    border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.35);
+}
+
+/* Header */
+.top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+h2{
+    margin:0;
+    color:#0f172a;
+}
+
+/* Buttons */
+.btn{
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+    transition:0.2s;
+    touch-action: manipulation;
+}
+
+.btn:hover{
+    transform:translateY(-1px);
+}
+
+.btn-danger{
+    background:#ef4444;
+    color:white;
+}
+
+.btn-secondary{
+    background:#64748b;
+    color:white;
+}
+
+/* Table */
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+    background:white;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+th{
+    background:#1e293b;
+    color:white;
+    padding:12px;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #e2e8f0;
+}
+
+tr:hover{
+    background:#f1f5f9;
+}
+
+/* Inputs */
+input{
+    padding:6px;
+    border:1px solid #cbd5e1;
+    border-radius:6px;
+    width:100px;
+    text-align:center;
+}
+
+/* KPI Cards */
+.kpi-calendar{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:10px;
+    margin-bottom:20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+    border-radius: 12px;
+}
+
+.kpi-card{
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    font-size: 11px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #e2e8f0 0%, #cbd5e1 100%);
+    transition: all 0.3s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.kpi-card.current-month {
+    background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 2px solid #3b82f6;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+}
+
+.kpi-card.current-month::before {
+    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+    height: 3px;
+}
+
+.kpi-card.kpi-excellent::before {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.kpi-card.kpi-good::before {
+    background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+}
+
+.kpi-card.kpi-poor::before {
+    background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+.kpi-month-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.kpi-month-label .month-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+.kpi-card.current-month .kpi-month-label .month-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.kpi-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.kpi-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.kpi-row span {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.kpi-row strong {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.kpi-row.revenue-row strong {
+    color: #059669;
+}
+
+.kpi-row.target-row strong {
+    color: #0284c7;
+}
+
+.kpi-row.achieved-row strong {
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+}
+
+.kpi-row.achieved-row strong.excellent {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #15803d;
+}
+
+.kpi-row.achieved-row strong.good {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #b45309;
+}
+
+.kpi-row.achieved-row strong.poor {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #dc2626;
+}
+
+.kpi-row.salary-row strong {
+    color: #7c3aed;
+}
+
+.kpi-progress-bar {
+    margin-top: 8px;
+    height: 5px;
+    background: #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.kpi-progress-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.kpi-progress-fill.excellent {
+    background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+}
+
+.kpi-progress-fill.good {
+    background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+}
+
+.kpi-progress-fill.poor {
+    background: linear-gradient(90deg, #ef4444 0%, #f87171 100%);
+}
+
+.kpi-status-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.kpi-status-badge.excellent {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.kpi-status-badge.good {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.kpi-status-badge.poor {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.kpi-status-badge.no-data {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* Chart box */
+.chart-box{
+    margin-top:20px;
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+/* SMART KPI COLORS */
+.kpi-green {
+    border-left: 6px solid #16a34a;
+}
+
+.kpi-yellow {
+    border-left: 6px solid #f59e0b;
+}
+
+.kpi-red {
+    border-left: 6px solid #dc2626;
+}
+
+/* Progress bar */
+.progress-bar {
+    margin-top:8px;
+    height:6px;
+    background:#e2e8f0;
+    border-radius:6px;
+    overflow:hidden;
+}
+
+.progress-fill {
+    height:100%;
+    background:#2563eb;
+    transition: width 0.5s ease;
+}
+
+/* Save Indicator */
+.save-indicator {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.save-indicator.saving {
+    background: #fbbf24;
+    color: #78350f;
+}
+
+.save-indicator.saved {
+    background: #6ee7b7;
+    color: #065f46;
+}
+
+.save-indicator.error {
+    background: #f87171;
+    color: #7f1d1d;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: #f8fafc;
+    padding: 30px;
+    border-radius: 14px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-close {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #6b7280;
+    transition: color 0.2s;
+    margin-left: 10px;
+}
+
+.modal-close:hover {
+    color: #1f2937;
+}
+
+.modal h2 {
+    margin-top: 0;
+    color: #0f172a;
+}
+
+.modal h2 {
+    margin-top: 0;
+    color: #0f172a;
+}
+
+.modal-table {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.modal-table th {
+    background: #1e293b;
+    color: white;
+    padding: 12px;
+}
+
+.modal-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Ensure tables in modal are styled properly */
+#coachList table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: white;
+}
+
+#coachList th {
+    background: #1e293b;
+    color: white;
+    padding: 12px;
+}
+
+#coachList td {
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: center;
+}
+
+#coachList input, #coachList select {
+    padding: 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    margin: 5px;
+}
+
+#coachList button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    margin: 5px;
+}
+
+#coachList .add-btn {
+    background: #10b981;
+    color: white;
+}
+
+#coachList .edit-btn {
+    background: #3b82f6;
+    color: white;
+}
+
+#coachList .delete-btn {
+    background: #ef4444;
+    color: white;
+}
+
+#coachList .cancel-btn {
+    background: #6b7280;
+    color: white;
+}
+
+/* ================= MOBILE RESPONSIVE ================= */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+        padding-bottom: 80px;
+    }
+
+    .container {
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .top-bar {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .top-bar h2 {
+        font-size: 18px;
+    }
+
+    .top-bar > div:last-child {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .btn {
+        padding: 8px 12px;
+        font-size: 13px;
+        min-height: 44px;
+    }
+
+    /* Bottom nav mobile */
+    .bottom-nav {
+        padding: 10px 15px;
+        gap: 8px;
+        justify-content: flex-start;
+    }
+
+    .bottom-nav .nav-btn {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    /* KPI Calendar - 2 columns on mobile */
+    .kpi-calendar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .kpi-card {
+        padding: 12px;
+        font-size: 11px;
+    }
+    
+    .kpi-month-label {
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+    
+    .kpi-month-label .month-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+    }
+    
+    .kpi-row {
+        padding: 5px 0;
+    }
+    
+    .kpi-row span {
+        font-size: 10px;
+    }
+    
+    .kpi-row strong {
+        font-size: 11px;
+    }
+    
+    .kpi-status-badge {
+        font-size: 8px;
+        padding: 2px 6px;
+    }
+    
+    .kpi-progress-bar {
+        height: 6px;
+        margin-top: 8px;
+    }
+
+    /* Table adjustments - make scrollable */
+    table {
+        font-size: 11px;
+        min-width: 100%;
+    }
+
+    th, td {
+        padding: 6px 4px;
+        white-space: nowrap;
+    }
+
+    input {
+        width: 60px;
+        font-size: 11px;
+        padding: 4px 2px;
+    }
+
+    /* Chart box */
+    .chart-box {
+        padding: 10px;
+    }
+
+    .chart-box h2 {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+    /* Chart canvas responsive */
+    #chart {
+        max-height: 300px;
+    }
+
+    /* Add center form */
+    .kpi-section-title {
+        font-size: 14px;
+    }
+
+    /* Save button */
+    center button {
+        width: 90%;
+        min-height: 44px;
+    }
+
+    /* Modal adjustments */
+    .modal-content {
+        width: 95%;
+        padding: 15px;
+        max-height: 90vh;
+    }
+
+    .modal-content h2 {
+        font-size: 16px;
+    }
+
+    #coachList table {
+        font-size: 11px;
+        min-width: 100%;
+    }
+
+    #coachList th, #coachList td {
+        padding: 5px 3px;
+        white-space: nowrap;
+    }
+
+    #coachList button {
+        padding: 5px 8px;
+        font-size: 11px;
+        min-height: 40px;
+    }
+
+    #coachList input, #coachList select {
+        padding: 4px;
+        font-size: 11px;
+        margin: 2px;
+    }
+
+    /* Buttons in modal */
+    .action-buttons {
+        flex-wrap: wrap;
+        gap: 2px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    h2 {
+        font-size: 16px !important;
+    }
+
+    .kpi-calendar {
+        grid-template-columns: 1fr;
+        padding: 10px;
+        gap: 12px;
+    }
+    
+    .kpi-card {
+        padding: 16px;
+    }
+    
+    .kpi-month-label {
+        font-size: 15px;
+    }
+    
+    .kpi-row {
+        padding: 6px 0;
+    }
+    
+    .kpi-row span {
+        font-size: 11px;
+    }
+    
+    .kpi-row strong {
+        font-size: 13px;
+    }
+
+    table {
+        font-size: 10px;
+    }
+
+    th, td {
+        padding: 4px 2px;
+    }
+
+    input {
+        width: 50px;
+        font-size: 10px;
+        padding: 3px;
+    }
+
+    .btn {
+        padding: 6px 8px;
+        font-size: 11px;
+        min-height: 40px;
+    }
+
+    .modal-content {
+        width: 98%;
+        padding: 10px;
+    }
+
+    #coachList button, #coachList input, #coachList select {
+        font-size: 10px;
+        padding: 4px;
+        min-height: 38px;
+    }
+
+    /* Stack label and input */
+    .kpi-section-title {
+        font-size: 13px;
+        margin: 8px 0;
+    }
+
+    center {
+        padding: 5px 0;
+    }
+
+    /* Compact modal header */
+    .modal-content > div {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+}
+
+/* ================= THEME VARIATIONS ================= */
+/* Light Theme */
+body.light-theme {
+    background: #f3f4f6;
+}
+
+body.light-theme .container {
+    background: #ffffff;
+    color: #1f2937;
+}
+
+body.light-theme h2 {
+    color: #1f2937;
+}
+
+body.light-theme th {
+    background: #374151;
+    color: white;
+}
+
+body.light-theme td {
+    border-bottom: 1px solid #d1d5db;
+}
+
+body.light-theme tr:hover {
+    background: #f9fafb;
+}
+
+body.light-theme .kpi-card {
+    background: #f9fafb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+body.light-theme .kpi-card.current-month {
+    border: 2px solid #3b82f6;
+    background: #eff6ff;
+}
+
+body.light-theme .chart-box {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+}
+
+body.light-theme .modal-content {
+    background: #ffffff;
+    color: #1f2937;
+}
+
+body.light-theme input {
+    background: #f3f4f6;
+    color: #1f2937;
+    border: 1px solid #d1d5db;
+}
+
+body.light-theme .btn {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Dark Theme (default) */
+body.dark-theme {
+    background: #0f0f0f;
+}
+
+body.dark-theme .container {
+    background: #1a1a1a;
+    color: #e5e7eb;
+}
+
+body.dark-theme h2 {
+    color: #f3f4f6;
+}
+
+body.dark-theme th {
+    background: #0f172a;
+    color: white;
+}
+
+body.dark-theme td {
+    border-bottom: 1px solid #374151;
+    color: #d1d5db;
+}
+
+body.dark-theme tr:hover {
+    background: #1f2937;
+}
+
+body.dark-theme .kpi-card {
+    background: #0f172a;
+    color: #e5e7eb;
+}
+
+body.dark-theme .kpi-card.current-month {
+    border: 2px solid #60a5fa;
+    background: #1e3a5f;
+}
+
+body.dark-theme .chart-box {
+    background: #0f172a;
+    border: 1px solid #374151;
+}
+
+body.dark-theme .modal-content {
+    background: #1a1a1a;
+    color: #e5e7eb;
+}
+
+body.dark-theme input {
+    background: #0f172a;
+    color: #e5e7eb;
+    border: 1px solid #374151;
+}
+
+/* ================= LAYOUT MODES ================= */
+/* Compact Layout */
+body.layout-compact .kpi-calendar {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+}
+
+body.layout-compact .kpi-card {
+    padding: 6px;
+    font-size: 11px;
+}
+
+body.layout-compact .container {
+    padding: 15px;
+}
+
+body.layout-compact body {
+    padding: 15px;
+}
+
+body.layout-compact table {
+    font-size: 12px;
+}
+
+body.layout-compact th, body.layout-compact td {
+    padding: 6px;
+}
+
+/* Expanded Layout */
+body.layout-expanded .kpi-calendar {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+body.layout-expanded .kpi-card {
+    padding: 16px;
+    font-size: 15px;
+}
+
+body.layout-expanded .container {
+    max-width: 1400px;
+    padding: 40px;
+}
+
+body.layout-expanded th, body.layout-expanded td {
+    padding: 14px;
+}
+
+body.layout-expanded input {
+    width: 120px;
+    padding: 8px;
+}
+
+/* Normal Layout (default) - already defined */
+
+/* Widget Visibility */
+.widget-hidden {
+    display: none !important;
+}
+
+/* Settings Button */
+.settings-btn {
+    background: #8b5cf6;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+    font-size: 16px;
+}
+
+.settings-btn:hover {
+    background: #7c3aed;
+    transform: translateY(-1px);
+}
+
+/* Settings Modal */
+.settings-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+}
+
+.settings-modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-content {
+    background: #f8fafc;
+    padding: 30px;
+    border-radius: 14px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+body.dark-theme .settings-content {
+    background: #1a1a1a;
+    color: #e5e7eb;
+}
+
+.settings-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.settings-group {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+body.dark-theme .settings-group {
+    background: #0f172a;
+    border: 1px solid #374151;
+}
+
+.settings-group h3 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+body.dark-theme .settings-group h3 {
+    color: #e5e7eb;
+}
+
+.toggle-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.toggle-item:last-child {
+    margin-bottom: 0;
+}
+
+.toggle-item label {
+    flex: 1;
+    font-size: 14px;
+    cursor: pointer;
+    color: #1f2937;
+}
+
+body.dark-theme .toggle-item label {
+    color: #d1d5db;
+}
+
+.toggle-switch {
+    width: 44px;
+    height: 24px;
+    background: #cbd5e1;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.toggle-switch.active {
+    background: #10b981;
+}
+
+.toggle-switch-ball {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: left 0.3s;
+}
+
+.toggle-switch.active .toggle-switch-ball {
+    left: 22px;
+}
+
+.select-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.select-item label {
+    flex: 1;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+body.dark-theme .select-item label {
+    color: #d1d5db;
+}
+
+.select-item select {
+    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: white;
+    color: #1f2937;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+body.dark-theme .select-item select {
+    background: #0f172a;
+    border-color: #374151;
+    color: #e5e7eb;
+}
+
+.settings-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+body.dark-theme .settings-buttons {
+    border-top-color: #374151;
+}
+
+.settings-buttons button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+.btn-save-settings {
+    background: #10b981;
+    color: white;
+}
+
+.btn-save-settings:hover {
+    background: #059669;
+}
+
+.btn-cancel-settings {
+    background: #cbd5e1;
+    color: #1f2937;
+}
+
+body.dark-theme .btn-cancel-settings {
+    background: #374151;
+    color: #e5e7eb;
+}
+
+.btn-cancel-settings:hover {
+    background: #a3a3a3;
+}
+
+.btn-reset-settings {
+    background: #ef4444;
+    color: white;
+    margin-right: auto;
+}
+
+.btn-reset-settings:hover {
+    background: #dc2626;
+}
+
+@media (max-width: 768px) {
+    .settings-content {
+        width: 95%;
+        padding: 20px;
+    }
+
+    .settings-group {
+        padding: 12px;
+    }
+
+    .toggle-item, .select-item {
+        flex-wrap: wrap;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; max-width: 90%;">
+    {% for category, message in messages %}
+    <div style="background: {% if category == 'success' %}#10b981{% elif category == 'error' %}#ef4444{% else %}#3b82f6{% endif %}; color: white; padding: 15px 25px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 10px; animation: slideDown 0.3s ease;">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+<style>
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+</style>
+<script>setTimeout(function() { document.querySelector('[style*="position: fixed; top: 20px"]').style.display = 'none'; }, 4000);</script>
+{% endif %}
+{% endwith %}
+
+<div class="container">
+
+<div class="top-bar">
+    <h2>🏸 Centers Performance </h2>
+
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div id="saveIndicator" class="save-indicator saved">Saved</div>
+        
+        <!-- Year Selector -->
+        <select id="yearSelector" onchange="window.location.href='/dashboard?month={{ month }}&year='+this.value" style="padding: 8px 12px; border-radius: 8px; border: 2px solid #e2e8f0; font-weight: 600; cursor: pointer;">
+            {% for y in range(2024, 2031) %}
+            <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<!-- ================= KPI CALENDAR (MONTHLY) ================= -->
+<div class="kpi-section-title" data-widget="kpi-calendar">📅 Monthly Performance Dashboard</div>
+<div class="kpi-calendar" data-widget="kpi-calendar">
+    {% for k in monthly_kpis %}
+    {% set status = 'excellent' if k.achieved_percent >= 100 else ('good' if k.achieved_percent >= 80 else ('poor' if k.achieved_percent > 0 else 'no-data')) %}
+    <a href="/dashboard?month={{ k.month }}&year={{ year }}" style="text-decoration: none; color: inherit;">
+        <div class="kpi-card {% if k.month == month %}current-month{% endif %} kpi-{{ status }}" data-month="{{ k.month }}">
+            {% if k.achieved_percent > 0 %}
+            <span class="kpi-status-badge {{ status }}">
+                {% if status == 'excellent' %}✅ On Target{% elif status == 'good' %}⚠️ Close{% else %}❌ Behind{% endif %}
+            </span>
+            {% endif %}
+            <div class="kpi-month-label">
+                <span>{{ k.month }}</span>
+                <span class="month-icon">{{ loop.index }}</span>
+            </div>
+            <div class="kpi-row revenue-row">
+                <span>💰 Revenue</span>
+                <strong class="kpi-total-revenue">₹{{ "{:,.0f}".format(k.total_revenue) }}</strong>
+            </div>
+            <div class="kpi-row target-row">
+                <span>🎯 Target</span>
+                <strong class="kpi-total-target">₹{{ "{:,.0f}".format(k.total_target) }}</strong>
+            </div>
+            <div class="kpi-row achieved-row">
+                <span>📊 Achievement</span>
+                <strong class="kpi-achieved {{ status }}">{{ k.achieved_percent }}%</strong>
+            </div>
+            <div class="kpi-row salary-row">
+                <span>👥 Salary Output</span>
+                <strong class="kpi-salary" style="color: {% if k.salary_percent > 30 %}#dc2626{% elif k.salary_percent > 0 %}#16a34a{% else %}#6b7280{% endif %};">{{ k.salary_percent }}%{% if k.salary_percent > 30 %} ⚠️{% endif %}</strong>
+            </div>
+            <div class="kpi-progress-bar">
+                <div class="kpi-progress-fill {{ status }}" style="width: {{ [k.achieved_percent, 100]|min }}%;"></div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+<!-- ================= CHART ================= -->
+<div class="chart-box" data-widget="revenue-chart">
+<h2>📊 Revenue vs Target</h2>
+<canvas id="chart"></canvas>
+</div>
+
+<form id="dashboardForm" method="POST" action="/dashboard?month={{ month }}&year={{ year }}" data-widget="centers-table">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+<table>
+<tr>
+    <th>Center</th>
+    <th>Revenue</th>
+    <th>Target</th>
+    <th>Salary % (max 30%)</th>
+    <th>Achieved %</th>
+    <th style="min-width: 180px;">Actions</th>
+</tr>
+
+{% for c in centers %}
+<tr>
+    <td>
+        <input type="text" name="name{{c.id}}" value="{{c.name}}">
+    </td>
+
+    <td>
+        <input type="number" step="0.01" name="revenue{{c.id}}" value="{{c.revenue}}">
+    </td>
+
+    <td>
+        <input type="number" step="0.01" name="target{{c.id}}" value="{{c.target}}">
+    </td>
+
+    <td id="salary_percent_{{ c.id }}" style="font-weight:bold; color: {% if c.salary_percent > 30 %}#dc2626{% elif c.salary_percent > 0 %}#16a34a{% else %}#6b7280{% endif %};">{{c.salary_percent}} %{% if c.salary_percent > 30 %} ⚠️{% endif %}</td>
+    <td id="achievement_{{ c.id }}"
+    style="
+        font-weight:bold;
+        color:
+        {% if c.achievement >= 100 %} #16a34a
+        {% elif c.achievement >= 80 %} #f59e0b
+        {% else %} #dc2626
+        {% endif %}
+    ">
+    {{c.achievement}} %
+</td>
+    <td>
+        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+            <a href="/center/remove-month/{{c.id}}?month={{ month }}&year={{ year }}" onclick="if(confirm('Remove this center from {{ month }} {{ year }}?\\n\\nThis will:\\n- Remove center from this month\\'s list\\n- Clear revenue/target for this month\\n- Clear coach salaries for this month\\n\\nCenter will still appear in other months.')) { localStorage.setItem('scrollPos', window.scrollY); return true; } return false;">
+                <button type="button" class="btn" style="background: #f97316; color: white; font-size: 11px; padding: 6px 10px;">📅 Clear Month</button>
+            </a>
+            <a href="/center/delete/{{c.id}}?month={{ month }}&year={{ year }}" onclick="if(confirm('⚠️ PERMANENTLY DELETE this center?\\n\\nThis will remove:\\n- All revenue/target data (ALL months)\\n- All coaches assigned\\n- All coach salaries\\n\\nThis cannot be undone!')) { localStorage.setItem('scrollPos', window.scrollY); return true; } return false;">
+                <button type="button" class="btn btn-danger" style="font-size: 11px; padding: 6px 10px;">🗑 Delete All</button>
+            </a>
+        </div>
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+
+<br>
+<center>
+<button class="btn">💾 Save</button>
+</center>
+</form>
+
+<!-- Add Center -->
+<div style="margin-top: 15px; text-align: left;">
+    <form method="POST" action="/center/add?month={{ month }}&year={{ year }}" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="new_center_name" style="flex-basis: 100%; min-width: 100%;"><strong>Add Center:</strong></label>
+        <input type="text" id="new_center_name" name="name" placeholder="Center name" required style="width: 180px; flex: 1; min-width: 150px;">
+        <button class="btn btn-secondary" type="submit">➕ Add Center</button>
+    </form>
+</div>
+
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="settings-modal">
+    <div class="settings-content">
+        <h2>⚙️ Dashboard Settings</h2>
+
+        <!-- Widget Visibility -->
+        <div class="settings-group">
+            <h3>📊 Widgets Visibility</h3>
+            <div class="toggle-item">
+                <label>Show KPI Calendar</label>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'show-kpi-calendar')">
+                    <div class="toggle-switch-ball"></div>
+                </div>
+            </div>
+            <div class="toggle-item">
+                <label>Show Revenue Chart</label>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'show-revenue-chart')">
+                    <div class="toggle-switch-ball"></div>
+                </div>
+            </div>
+            <div class="toggle-item">
+                <label>Show Centers Table</label>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'show-centers-table')">
+                    <div class="toggle-switch-ball"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Theme -->
+        <div class="settings-group">
+            <h3>🎨 Appearance</h3>
+            <div class="toggle-item">
+                <label>Dark Theme</label>
+                <div class="toggle-switch active" onclick="toggleSetting(this, 'dark-theme')">
+                    <div class="toggle-switch-ball"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Layout -->
+        <div class="settings-group">
+            <h3>📐 Layout Mode</h3>
+            <div class="select-item">
+                <label>Select Mode:</label>
+                <select id="layoutSelect" onchange="changeLayout(this.value)">
+                    <option value="layout-normal">Normal</option>
+                    <option value="layout-compact">Compact</option>
+                    <option value="layout-expanded">Expanded</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Backup -->
+        <div class="settings-group">
+            <h3>📦 Data Backup</h3>
+            <div class="select-item" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                <label style="font-size: 13px; color: #94a3b8;">Manage database backups, restore data, or create manual backups</label>
+                <a href="/backups" class="btn-backup-link" style="display: inline-block; padding: 10px 20px; background: #8b5cf6; color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">📦 Open Backup Manager</a>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="settings-buttons">
+            <button class="btn-reset-settings" onclick="resetSettings()">🔄 Reset to Default</button>
+            <button class="btn-cancel-settings" onclick="closeSettings()">Cancel</button>
+            <button class="btn-save-settings" onclick="saveAndCloseSettings()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Coach Modal -->
+<div id="coachModal" class="modal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0;">👨‍🏫 Coaches — <span id="modalMonth">{{ month }}</span></h2>
+            <div>
+                <button onclick="loadCoachData()" style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px;">🔄 Refresh</button>
+                <span class="modal-close" onclick="closeCoachModal()">&times;</span>
+            </div>
+        </div>
+        <div id="coachList">Loading...</div>
+    </div>
+</div>
+
+<script>
+// Restore scroll position after delete
+(function() {
+    const savedPos = localStorage.getItem('scrollPos');
+    if (savedPos) {
+        window.scrollTo(0, parseInt(savedPos));
+        localStorage.removeItem('scrollPos');
+    }
+})();
+
+const labels = [{% for c in centers %}"{{c.name}}",{% endfor %}];
+const revenue = [{% for c in centers %}{{c.revenue}},{% endfor %}];
+const target = [{% for c in centers %}{{c.target}},{% endfor %}];
+
+const ctx = document.getElementById('chart').getContext('2d');
+
+const revenueTargetChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Revenue',
+                data: revenue,
+                backgroundColor: '#3b82f6'
+            },
+            {
+                label: 'Target',
+                data: target,
+                backgroundColor: '#ef4444'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// ================= AUTO SAVE (DEBOUNCED) =================
+const form = document.getElementById('dashboardForm');
+const saveIndicator = document.getElementById('saveIndicator');
+let saveTimer = null;
+let inFlight = null;
+
+function setIndicator(state, text) {
+    saveIndicator.classList.remove('saving', 'saved', 'error');
+    if (state) saveIndicator.classList.add(state);
+    saveIndicator.textContent = text;
+}
+
+function applyServerUpdate(payload) {
+    if (!payload || !payload.ok) return;
+
+    // Update computed cells per center
+    if (Array.isArray(payload.centers)) {
+        payload.centers.forEach(c => {
+            const achEl = document.getElementById(`achievement_${c.id}`);
+            const salEl = document.getElementById(`salary_percent_${c.id}`);
+            if (achEl) achEl.textContent = `${c.achievement} %`;
+            if (salEl) {
+                salEl.textContent = `${c.salary_percent} %${c.salary_percent > 30 ? ' ⚠️' : ''}`;
+                salEl.style.color = c.salary_percent > 30 ? '#dc2626' : (c.salary_percent > 0 ? '#16a34a' : '#6b7280');
+            }
+        });
+
+        // Update chart to reflect latest center values/names
+        revenueTargetChart.data.labels = payload.centers.map(c => c.name);
+        revenueTargetChart.data.datasets[0].data = payload.centers.map(c => c.revenue);
+        revenueTargetChart.data.datasets[1].data = payload.centers.map(c => c.target);
+        revenueTargetChart.update();
+    }
+
+    // Update KPI calendar values (all months)
+    if (Array.isArray(payload.monthly_kpis)) {
+        payload.monthly_kpis.forEach(k => {
+            const card = document.querySelector(`.kpi-card[data-month="${k.month}"]`);
+            if (!card) return;
+            const rev = card.querySelector('.kpi-total-revenue');
+            const tar = card.querySelector('.kpi-total-target');
+            const ach = card.querySelector('.kpi-achieved');
+            const sal = card.querySelector('.kpi-salary');
+            if (rev) rev.textContent = k.total_revenue;
+            if (tar) tar.textContent = k.total_target;
+            if (ach) ach.textContent = `${k.achieved_percent}%`;
+            if (sal) {
+                sal.textContent = `${k.salary_percent}%${k.salary_percent > 30 ? ' ⚠️' : ''}`;
+                sal.style.color = k.salary_percent > 30 ? '#dc2626' : (k.salary_percent > 0 ? '#16a34a' : '#6b7280');
+            }
+        });
+    }
+}
+
+async function autoSave() {
+    // Abort previous in-flight request (keep latest edits)
+    if (inFlight && typeof inFlight.abort === 'function') {
+        inFlight.abort();
+    }
+    inFlight = new AbortController();
+
+    const formData = new FormData(form);
+    setIndicator('saving', 'Saving...');
+
+    try {
+        const res = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            signal: inFlight.signal
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        applyServerUpdate(data);
+        setIndicator('saved', 'Saved');
+    } catch (e) {
+        // Ignore abort errors (we started a newer save)
+        if (e && e.name === 'AbortError') return;
+        setIndicator('error', 'Save failed');
+        console.error(e);
+    }
+}
+
+form.addEventListener('input', (e) => {
+    const el = e.target;
+    if (!el) return;
+    if (el.tagName !== 'INPUT') return;
+    if (!el.name) return;
+
+    // Debounce to avoid saving on every keystroke
+    if (saveTimer) clearTimeout(saveTimer);
+    setIndicator('saving', 'Saving...');
+    saveTimer = setTimeout(autoSave, 700);
+});
+
+// ================= COACH MODAL =================
+const coachModal = document.getElementById('coachModal');
+
+function openCoachModal() {
+    coachModal.classList.add('show');
+    loadCoachData();
+}
+
+function closeCoachModal() {
+    coachModal.classList.remove('show');
+}
+
+async function loadCoachData() {
+    const coachList = document.getElementById('coachList');
+    const currentMonth = new URLSearchParams(window.location.search).get('month') || '{{ month }}';
+    const currentYear = new URLSearchParams(window.location.search).get('year') || '{{ year }}';
+    document.getElementById('modalMonth').textContent = currentMonth + ' ' + currentYear;
+    
+    try {
+        const res = await fetch(`/coaches?month=${encodeURIComponent(currentMonth)}&year=${encodeURIComponent(currentYear)}&modal=true`);
+        if (!res.ok) throw new Error('Failed to load coach data');
+        const html = await res.text();
+        
+        // Parse the HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Get Add Coach form and Coach List table
+        let contentHtml = '';
+        const cards = doc.querySelectorAll('.card');
+        
+        cards.forEach(card => {
+            const h2 = card.querySelector('h2');
+            if (h2) {
+                const text = h2.textContent;
+                // Include "Add Coach" and "All Coaches" sections
+                if (text.includes('Add') || text.includes('All Coaches')) {
+                    contentHtml += '<div style="margin-bottom: 20px;">' + card.innerHTML + '</div>';
+                }
+            }
+        });
+        
+        if (contentHtml) {
+            coachList.innerHTML = contentHtml;
+            // Attach form handlers after content is loaded
+            attachCoachFormHandlers();
+        } else {
+            coachList.innerHTML = '<p>No coach data found</p>';
+        }
+    } catch (e) {
+        coachList.innerHTML = '<p style="color: red;">Error loading coach data</p>';
+        console.error(e);
+    }
+}
+
+function attachCoachFormHandlers() {
+    const currentMonth = new URLSearchParams(window.location.search).get('month') || '{{ month }}';
+    const currentYear = new URLSearchParams(window.location.search).get('year') || '{{ year }}';
+    
+    // Handle form submit events (for Add Coach, Edit Coach with buttons)
+    const forms = document.querySelectorAll('#coachList form');
+    forms.forEach(form => {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await submitFormData(new FormData(form), currentMonth, currentYear);
+        });
+    });
+    
+    // Handle salary input changes (these use onchange="this.form.submit()" which bypasses submit event)
+    const salaryInputs = document.querySelectorAll('#coachList input[name="salary"]');
+    salaryInputs.forEach(input => {
+        // Remove the onchange attribute to prevent double submission
+        input.removeAttribute('onchange');
+        
+        input.addEventListener('change', async function() {
+            const form = this.closest('form');
+            if (form) {
+                await submitFormData(new FormData(form), currentMonth, currentYear);
+            }
+        });
+    });
+}
+
+async function submitFormData(formData, currentMonth, currentYear) {
+    try {
+        const res = await fetch(`/coaches?month=${encodeURIComponent(currentMonth)}&year=${encodeURIComponent(currentYear)}`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (res.ok) {
+            // Reload coach data in modal
+            loadCoachData();
+            // Also reload the dashboard to update salary %
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        } else {
+            alert('Error saving data');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error saving data');
+    }
+}
+
+// Close modal when clicking outside of it
+window.addEventListener('click', (e) => {
+    if (e.target === coachModal) {
+        closeCoachModal();
+    }
+});
+
+// ================= DASHBOARD CUSTOMIZATION =================
+const settingsModal = document.getElementById('settingsModal');
+const defaultPreferences = {
+    'show-kpi-calendar': true,
+    'show-revenue-chart': true,
+    'show-centers-table': true,
+    'dark-theme': true,
+    'layout-mode': 'layout-normal'
+};
+
+// Load preferences from localStorage on page load
+function loadPreferences() {
+    const saved = localStorage.getItem('dashboardPreferences');
+    const prefs = saved ? JSON.parse(saved) : defaultPreferences;
+    
+    // Apply theme
+    const isDark = prefs['dark-theme'] !== false;
+    document.body.classList.toggle('dark-theme', isDark);
+    document.body.classList.toggle('light-theme', !isDark);
+    updateThemeToggle(isDark);
+    
+    // Apply layout mode
+    const layoutMode = prefs['layout-mode'] || 'layout-normal';
+    document.body.className = document.body.className.replace(/layout-\w+/, '');
+    document.body.classList.add(layoutMode);
+    document.getElementById('layoutSelect').value = layoutMode;
+    
+    // Apply widget visibility
+    toggleWidget('kpi-calendar', prefs['show-kpi-calendar'] !== false);
+    toggleWidget('revenue-chart', prefs['show-revenue-chart'] !== false);
+    toggleWidget('centers-table', prefs['show-centers-table'] !== false);
+    updateWidgetToggles(prefs);
+}
+
+function updateThemeToggle(isDark) {
+    const themeToggle = document.querySelector('[onclick*="dark-theme"]');
+    if (themeToggle) {
+        themeToggle.classList.toggle('active', isDark);
+    }
+}
+
+function updateWidgetToggles(prefs) {
+    const toggles = document.querySelectorAll('[onclick*="show-"]');
+    toggles.forEach(toggle => {
+        const key = toggle.getAttribute('onclick').match(/'([^']+)'/)[1];
+        toggle.classList.toggle('active', prefs[key] !== false);
+    });
+}
+
+function toggleWidget(widgetName, show) {
+    const elements = document.querySelectorAll(`[data-widget="${widgetName}"]`);
+    elements.forEach(el => {
+        el.classList.toggle('widget-hidden', !show);
+    });
+}
+
+function toggleSetting(element, key) {
+    element.classList.toggle('active');
+    
+    // Apply changes immediately for theme
+    if (key === 'dark-theme') {
+        const isDark = element.classList.contains('active');
+        document.body.classList.toggle('dark-theme', isDark);
+        document.body.classList.toggle('light-theme', !isDark);
+    }
+    // Apply changes immediately for widgets
+    else if (key.startsWith('show-')) {
+        const widgetName = key.replace('show-', '');
+        toggleWidget(widgetName, element.classList.contains('active'));
+    }
+}
+
+function changeLayout(layoutMode) {
+    // Remove all layout classes
+    document.body.className = document.body.className.replace(/layout-\w+/, '');
+    // Add new layout class
+    document.body.classList.add(layoutMode);
+}
+
+function openSettings() {
+    settingsModal.classList.add('show');
+}
+
+function closeSettings() {
+    settingsModal.classList.remove('show');
+    // Reload preferences to undo unsaved changes
+    loadPreferences();
+}
+
+function saveAndCloseSettings() {
+    const prefs = {
+        'show-kpi-calendar': document.querySelector('[onclick*="show-kpi-calendar"]').classList.contains('active'),
+        'show-revenue-chart': document.querySelector('[onclick*="show-revenue-chart"]').classList.contains('active'),
+        'show-centers-table': document.querySelector('[onclick*="show-centers-table"]').classList.contains('active'),
+        'dark-theme': document.querySelector('[onclick*="dark-theme"]').classList.contains('active'),
+        'layout-mode': document.getElementById('layoutSelect').value
+    };
+    
+    localStorage.setItem('dashboardPreferences', JSON.stringify(prefs));
+    closeSettings();
+}
+
+function resetSettings() {
+    if (confirm('Are you sure? This will reset all customizations to default.')) {
+        localStorage.removeItem('dashboardPreferences');
+        loadPreferences();
+        // Update all toggles to reflect defaults
+        document.querySelectorAll('[onclick*="show-"]').forEach(toggle => {
+            toggle.classList.add('active');
+        });
+        document.querySelector('[onclick*="dark-theme"]').classList.add('active');
+        document.getElementById('layoutSelect').value = 'layout-normal';
+    }
+}
+
+// Close settings modal when clicking outside of it
+window.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+        closeSettings();
+    }
+});
+
+// Check if salary was updated on coaches page and refresh
+function checkSalaryUpdate() {
+    const lastUpdate = localStorage.getItem('salary_updated');
+    const pageLoadTime = localStorage.getItem('dashboard_loaded');
+    
+    if (lastUpdate && (!pageLoadTime || parseInt(lastUpdate) > parseInt(pageLoadTime))) {
+        // Salary was updated - reload page to get fresh data
+        localStorage.setItem('dashboard_loaded', Date.now().toString());
+        localStorage.removeItem('salary_updated');
+        window.location.reload();
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadPreferences();
+    localStorage.setItem('dashboard_loaded', Date.now().toString());
+    
+    // Check for salary updates when page becomes visible (e.g., switching tabs)
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            checkSalaryUpdate();
+        }
+    });
+});
+</script>
+
+<!-- Bottom Navigation Bar -->
+<nav class="bottom-nav">
+    <a href="/analytics?year={{ year }}">
+        <button class="nav-btn analytics">📊 Analytics</button>
+    </a>
+    <a href="/coaches?month={{ month }}&year={{ year }}">
+        <button class="nav-btn coaches">🏋️ Coaches</button>
+    </a>
+    <a href="/leaves?year={{ year }}">
+        <button class="nav-btn leaves">📅 Leaves</button>
+    </a>
+    <a href="/settings">
+        <button class="nav-btn account">👤 Account</button>
+    </a>
+    <button class="nav-btn settings" onclick="openSettings()">⚙️ Settings</button>
+    <a href="/logout">
+        <button class="nav-btn logout">🚪 Logout</button>
+    </a>
+</nav>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+

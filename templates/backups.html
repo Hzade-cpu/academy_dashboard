@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backups - Academy Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            padding: 30px;
+            background: #000000;
+            min-height: 100vh;
+        }
+
+        body.dark-theme {
+            background: #000000;
+        }
+
+        body.light-theme {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 28px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-dashboard {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-settings {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-create {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-restore {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-download {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            color: #1e40af;
+        }
+
+        .info-box h4 {
+            margin: 0 0 8px 0;
+            font-size: 15px;
+        }
+
+        .info-box p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Flash Messages */
+        .flash-message {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .flash-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #22c55e;
+        }
+
+        .flash-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        /* Create Backup Form */
+        .create-backup-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        .create-backup-section h3 {
+            margin: 0 0 15px 0;
+            color: #0f172a;
+            font-size: 16px;
+        }
+
+        .create-backup-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .create-backup-form input[type="text"] {
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 250px;
+        }
+
+        .create-backup-form input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Backups Table */
+        .backups-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        .backups-section h3 {
+            margin: 0 0 15px 0;
+            color: #0f172a;
+            font-size: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        td {
+            color: #334155;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .no-backups {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+
+            .create-backup-form input[type="text"] {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // Apply theme before content renders to prevent flash
+        (function() {
+            try {
+                const prefs = JSON.parse(localStorage.getItem('dashboardPreferences') || '{}');
+                const theme = prefs.theme || 'dark';
+                document.body.classList.add(theme + '-theme');
+            } catch(e) {
+                document.body.classList.add('dark-theme');
+            }
+        })();
+    </script>
+
+    <div class="container">
+        <div class="header">
+            <h1>📦 Database Backups</h1>
+            <div class="header-actions">
+                <a href="/settings" class="btn btn-settings">⚙️ Settings</a>
+                <a href="/dashboard" class="btn btn-dashboard">🏠 Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <h4>ℹ️ About Backups</h4>
+            <p>
+                Backups are automatically created when the application starts. You can also create manual backups anytime.
+                The system keeps up to 20 backups. Older backups are automatically removed.
+                <br><strong>Tip:</strong> Download important backups to your local machine for extra safety.
+            </p>
+        </div>
+
+        <!-- Create Backup Section -->
+        <div class="create-backup-section">
+            <h3>Create New Backup</h3>
+            <form method="POST" action="/backups/create" class="create-backup-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="text" name="reason" placeholder="Reason (e.g., before_update)" maxlength="50">
+                <button type="submit" class="btn btn-create">➕ Create Backup</button>
+            </form>
+        </div>
+
+        <!-- Backups List -->
+        <div class="backups-section">
+            <h3>Available Backups ({{ backups|length }})</h3>
+            
+            {% if backups %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Created</th>
+                        <th>Size</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for backup in backups %}
+                    <tr>
+                        <td>{{ backup.filename }}</td>
+                        <td>{{ backup.created }}</td>
+                        <td>{{ backup.size_kb }} KB</td>
+                        <td class="actions-cell">
+                            <a href="/backups/download/{{ backup.filename }}" class="btn btn-download btn-small">⬇️ Download</a>
+                            <form method="POST" action="/backups/restore/{{ backup.filename }}" style="display:inline;" 
+                                  onsubmit="return confirm('Are you sure you want to restore this backup? Current data will be backed up first.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-restore btn-small">🔄 Restore</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-backups">
+                <p>No backups available yet. Create your first backup above!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

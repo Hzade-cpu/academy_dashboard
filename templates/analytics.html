@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics & Insights</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            margin: 0;
+            padding: 30px;
+            background: #000000;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 28px;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-pdf {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-excel {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-dashboard {
+            background: #3b82f6;
+            color: white;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .filter-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        /* Month Checkboxes */
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+
+        .month-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .month-checkbox:hover {
+            background: #e2e8f0;
+        }
+
+        .month-checkbox.selected {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .month-checkbox input {
+            display: none;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-apply {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 25px;
+        }
+
+        .btn-reset {
+            background: #64748b;
+            color: white;
+            padding: 10px 25px;
+        }
+
+        .btn-select-all {
+            background: #10b981;
+            color: white;
+            padding: 8px 15px;
+            font-size: 13px;
+        }
+
+        /* Average Stats Card */
+        .avg-stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .avg-stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .avg-stats-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .avg-stats-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .avg-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .avg-stat-item {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .avg-stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .avg-stat-value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .avg-stat-sub {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        /* KPI Cards */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border-left: 6px solid #3b82f6;
+        }
+
+        .kpi-label {
+            color: #6b7280;
+            font-size: 13px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        .kpi-subtext {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+
+        /* Charts */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .chart-box h3 {
+            margin: 0 0 15px 0;
+            color: #0f172a;
+            font-size: 16px;
+        }
+
+        .chart-box canvas {
+            max-height: 280px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            margin-top: 20px;
+        }
+
+        th {
+            background: #1e293b;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:hover {
+            background: #f1f5f9;
+        }
+
+        .positive {
+            color: #16a34a;
+            font-weight: 600;
+        }
+
+        .negative {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .neutral {
+            color: #6b7280;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0f172a;
+            margin: 30px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .export-buttons {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .export-buttons .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-row {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .filter-row {
+                flex-direction: column;
+            }
+
+            .month-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .avg-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .avg-stat-value {
+                font-size: 22px;
+            }
+        }
+
+        /* ================= DARK THEME ================= */
+        body.dark-theme {
+            background: #0f0f0f;
+        }
+
+        body.dark-theme .container {
+            background: #1a1a1a;
+            color: #e5e7eb;
+        }
+
+        body.dark-theme h1 {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme .filter-section {
+            background: #1e293b;
+        }
+
+        body.dark-theme .filter-group label {
+            color: #e5e7eb;
+        }
+
+        body.dark-theme .filter-group select {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-color: #374151;
+        }
+
+        body.dark-theme .month-checkbox {
+            background: #0f172a;
+            color: #e5e7eb;
+        }
+
+        body.dark-theme .month-checkbox:hover {
+            background: #1e3a5f;
+        }
+
+        body.dark-theme .month-checkbox.selected {
+            background: #3b82f6;
+            color: white;
+        }
+
+        body.dark-theme .kpi-card {
+            background: #1e293b;
+        }
+
+        body.dark-theme .kpi-label {
+            color: #9ca3af;
+        }
+
+        body.dark-theme .kpi-value {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme .chart-box {
+            background: #1e293b;
+        }
+
+        body.dark-theme .chart-box h3 {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme table {
+            background: #1e293b;
+        }
+
+        body.dark-theme th {
+            background: #0f172a;
+        }
+
+        body.dark-theme td {
+            border-bottom-color: #374151;
+            color: #e5e7eb;
+        }
+
+        body.dark-theme tr:hover {
+            background: #1e3a5f;
+        }
+
+        body.dark-theme .section-title {
+            color: #f3f4f6;
+        }
+
+        body.dark-theme #yearSelector {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-color: #374151;
+        }
+
+        /* ================= LIGHT THEME ================= */
+        body.light-theme {
+            background: #f1f5f9;
+        }
+
+        body.light-theme .container {
+            background: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<script>
+// Load theme preference from localStorage
+function loadThemePreference() {
+    const saved = localStorage.getItem('dashboardPreferences');
+    if (saved) {
+        const prefs = JSON.parse(saved);
+        const isDark = prefs['dark-theme'] !== false;
+        document.body.classList.toggle('dark-theme', isDark);
+        document.body.classList.toggle('light-theme', !isDark);
+    } else {
+        document.body.classList.add('dark-theme');
+    }
+}
+loadThemePreference();
+</script>
+
+<div class="container">
+    <div class="header">
+        <h1>📊 Analytics & Insights ({{ year }})</h1>
+        <div class="export-buttons">
+            <select id="yearSelector" onchange="window.location.href='/analytics?year='+this.value" style="padding: 8px 12px; border-radius: 8px; border: 2px solid #e2e8f0; font-weight: 600; cursor: pointer;">
+                {% for y in range(2024, 2031) %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+            <a href="/export/pdf" class="btn btn-pdf">📄 Export PDF</a>
+            <a href="/export/excel" class="btn btn-excel">📊 Export Excel</a>
+            <a href="/coaches?year={{ year }}" class="btn" style="background: #10b981; color: white;">🏋️ Coaches</a>
+            <a href="/leaves?year={{ year }}" class="btn" style="background: #f97316; color: white;">📅 Leaves</a>
+            <a href="/settings" class="btn" style="background: #8b5cf6; color: white;">👤 Account</a>
+            <a href="/dashboard?year={{ year }}" class="btn btn-dashboard">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>📍 Select Center</label>
+                <select id="centerSelect" onchange="applyFilters()">
+                    <option value="0" {% if selected_center == 0 %}selected{% endif %}>All Centers</option>
+                    {% for center in centers %}
+                    <option value="{{ center[0] }}" {% if center[0] == selected_center %}selected{% endif %}>{{ center[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>📆 Quick Select Months</label>
+                <select id="monthCountSelect" onchange="selectMonthsAndApply(this.value)">
+                    <option value="">-- Choose Duration --</option>
+                    <option value="1" {% if selected_count == 1 %}selected{% endif %}>1 Month</option>
+                    <option value="2" {% if selected_count == 2 %}selected{% endif %}>2 Months</option>
+                    <option value="3" {% if selected_count == 3 %}selected{% endif %}>3 Months (Q1)</option>
+                    <option value="4" {% if selected_count == 4 %}selected{% endif %}>4 Months</option>
+                    <option value="5" {% if selected_count == 5 %}selected{% endif %}>5 Months</option>
+                    <option value="6" {% if selected_count == 6 %}selected{% endif %}>6 Months (H1)</option>
+                    <option value="7" {% if selected_count == 7 %}selected{% endif %}>7 Months</option>
+                    <option value="8" {% if selected_count == 8 %}selected{% endif %}>8 Months</option>
+                    <option value="9" {% if selected_count == 9 %}selected{% endif %}>9 Months</option>
+                    <option value="10" {% if selected_count == 10 %}selected{% endif %}>10 Months</option>
+                    <option value="11" {% if selected_count == 11 %}selected{% endif %}>11 Months</option>
+                    <option value="12" {% if selected_count == 12 %}selected{% endif %}>12 Months (Full Year)</option>
+                </select>
+            </div>
+            <div class="filter-group" style="flex: 2;">
+                <label>📅 Or Select Individual Months
+                    <button type="button" class="btn btn-select-all" onclick="toggleAllMonths()" style="margin-left: 10px; padding: 4px 10px; font-size: 11px;">All / Clear</button>
+                </label>
+                <div class="month-grid">
+                    {% for m in calendar_months %}
+                    <label class="month-checkbox {% if m in selected_months %}selected{% endif %}" data-month="{{ m }}">
+                        <input type="checkbox" name="months" value="{{ m }}" {% if m in selected_months %}checked{% endif %}>
+                        {{ m[:3] }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-apply" onclick="applyFilters()">🔍 Apply Filters</button>
+            <button class="btn btn-reset" onclick="resetFilters()">🔄 Reset</button>
+        </div>
+    </div>
+
+    <!-- Average Revenue Stats Card -->
+    <div class="avg-stats-card">
+        <div class="avg-stats-header">
+            <h3>📊 Average Revenue Analysis</h3>
+            <span class="avg-stats-badge">
+                {{ selected_count }} month{% if selected_count != 1 %}s{% endif %} selected | {{ selected_center_name }}
+            </span>
+        </div>
+        <div class="avg-stats-grid">
+            <div class="avg-stat-item">
+                <div class="avg-stat-label">Average Monthly Revenue</div>
+                <div class="avg-stat-value">₹{{ avg_revenue | int }}</div>
+                <div class="avg-stat-sub">Per month average</div>
+            </div>
+            <div class="avg-stat-item">
+                <div class="avg-stat-label">Average Monthly Target</div>
+                <div class="avg-stat-value">₹{{ avg_target | int }}</div>
+                <div class="avg-stat-sub">Per month average</div>
+            </div>
+            <div class="avg-stat-item">
+                <div class="avg-stat-label">Total Selected Revenue</div>
+                <div class="avg-stat-value">₹{{ selected_revenue | int }}</div>
+                <div class="avg-stat-sub">Sum of {{ selected_count }} months</div>
+            </div>
+            <div class="avg-stat-item">
+                <div class="avg-stat-label">Overall Achievement</div>
+                <div class="avg-stat-value">{{ avg_achievement }}%</div>
+                <div class="avg-stat-sub">Selected period</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Summary -->
+    <div class="section-title">📈 Performance Summary ({{ year }})</div>
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-label">Total Revenue</div>
+            <div class="kpi-value">₹{{ total_revenue | int }}</div>
+            <div class="kpi-subtext">Across all months</div>
+        </div>
+        <div class="kpi-card" style="border-left-color: #f59e0b;">
+            <div class="kpi-label">Total Target</div>
+            <div class="kpi-value">₹{{ total_target | int }}</div>
+            <div class="kpi-subtext">Overall goal</div>
+        </div>
+        <div class="kpi-card" style="border-left-color: #16a34a;">
+            <div class="kpi-label">Average Achievement</div>
+            <div class="kpi-value">{{ avg_achievement }}%</div>
+            <div class="kpi-subtext">Performance rate</div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="section-title">📊 Visual Analytics</div>
+    <div class="chart-grid">
+        <div class="chart-box">
+            <h3>Revenue vs Target Trend</h3>
+            <canvas id="trendChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Achievement Rate by Month</h3>
+            <canvas id="achievementChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Month-to-Month Growth %</h3>
+            <canvas id="growthChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Profit Distribution</h3>
+            <canvas id="profitChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Detailed Table -->
+    <div class="section-title">📋 Detailed Monthly Report</div>
+    <table>
+        <tr>
+            <th>Month</th>
+            <th>Revenue</th>
+            <th>Target</th>
+            <th>Achievement %</th>
+            <th>Salary Output (max 30%)</th>
+            <th>Profit/Loss</th>
+            <th>Status</th>
+        </tr>
+        {% for data in analytics_data %}
+        <tr>
+            <td><strong>{{ data.month }}</strong></td>
+            <td>₹{{ data.revenue | round(2) }}</td>
+            <td>₹{{ data.target | round(2) }}</td>
+            <td class="{% if data.achieved >= 100 %}positive{% elif data.achieved >= 80 %}neutral{% else %}negative{% endif %}">
+                {{ data.achieved }}%
+            </td>
+            <td class="{% if data.salary_ratio > 30 %}negative{% elif data.salary_ratio > 0 %}positive{% endif %}">{{ data.salary_ratio }}%{% if data.salary_ratio > 30 %} ⚠️{% endif %}</td>
+            <td class="{% if data.profit >= 0 %}positive{% else %}negative{% endif %}">
+                ₹{{ data.profit | round(2) }}
+            </td>
+            <td>
+                {% if data.achieved >= 100 %}
+                    🟢 Exceeded
+                {% elif data.achieved >= 80 %}
+                    🟡 On Track
+                {% else %}
+                    🔴 Behind
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- Growth Analysis -->
+    <div class="section-title">📈 Growth Analysis</div>
+    <table>
+        <tr>
+            <th>Month</th>
+            <th>Growth Rate</th>
+            <th>Trend</th>
+        </tr>
+        {% for growth in growth_data %}
+        <tr>
+            <td><strong>{{ growth.month }}</strong></td>
+            <td class="{% if growth.growth >= 0 %}positive{% else %}negative{% endif %}">
+                {{ growth.growth }}%
+            </td>
+            <td style="font-size: 20px;">{{ growth.direction }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</div>
+
+<script>
+// Data from Flask
+const analyticsData = {{ analytics_data | tojson }};
+const growthData = {{ growth_data | tojson }};
+const months = analyticsData.map(d => d.month.substring(0, 3));
+
+// ================= TREND CHART =================
+const trendCtx = document.getElementById('trendChart').getContext('2d');
+const trendChart = new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: months,
+        datasets: [
+            {
+                label: 'Revenue',
+                data: analyticsData.map(d => d.revenue),
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                fill: true,
+                tension: 0.3
+            },
+            {
+                label: 'Target',
+                data: analyticsData.map(d => d.target),
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                fill: true,
+                tension: 0.3
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { position: 'top' } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+// ================= ACHIEVEMENT CHART =================
+const achievementCtx = document.getElementById('achievementChart').getContext('2d');
+const achievementChart = new Chart(achievementCtx, {
+    type: 'bar',
+    data: {
+        labels: months,
+        datasets: [{
+            label: 'Achievement %',
+            data: analyticsData.map(d => d.achieved),
+            backgroundColor: analyticsData.map(d => 
+                d.achieved >= 100 ? '#16a34a' : d.achieved >= 80 ? '#f59e0b' : '#dc2626'
+            ),
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, max: 150 } }
+    }
+});
+
+// ================= GROWTH CHART =================
+const growthCtx = document.getElementById('growthChart').getContext('2d');
+const growthChart = new Chart(growthCtx, {
+    type: 'bar',
+    data: {
+        labels: months,
+        datasets: [{
+            label: 'Growth %',
+            data: growthData.map(d => d.growth),
+            backgroundColor: growthData.map(d => d.growth >= 0 ? '#16a34a' : '#dc2626'),
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: false } }
+    }
+});
+
+// ================= PROFIT CHART =================
+const profitCtx = document.getElementById('profitChart').getContext('2d');
+const profitChart = new Chart(profitCtx, {
+    type: 'doughnut',
+    data: {
+        labels: analyticsData.filter(d => d.profit > 0).map(d => d.month.substring(0, 3)),
+        datasets: [{
+            data: analyticsData.filter(d => d.profit > 0).map(d => d.profit),
+            backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#84cc16', '#f97316', '#14b8a6', '#a855f7', '#ef4444', '#6366f1'],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { position: 'right' }
+        }
+    }
+});
+
+// ================= FILTER FUNCTIONS =================
+// All months in order
+const allMonths = ['January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Select N months and immediately apply
+function selectMonthsAndApply(count) {
+    if (!count) return;
+    
+    const n = parseInt(count);
+    const year = document.getElementById('yearSelector').value;
+    const center = document.getElementById('centerSelect').value;
+    
+    // Build months array for first N months
+    const selectedMonths = allMonths.slice(0, n);
+    
+    let url = `/analytics?year=${year}&center=${center}`;
+    if (n < 12) {
+        url += `&months=${selectedMonths.join(',')}`;
+    }
+    
+    window.location.href = url;
+}
+
+// Select N months (for visual update only)
+function selectMonthCount(count) {
+    if (!count) return;
+    
+    const n = parseInt(count);
+    const checkboxes = document.querySelectorAll('.month-checkbox');
+    
+    // Clear all first
+    checkboxes.forEach(label => {
+        const cb = label.querySelector('input');
+        cb.checked = false;
+        label.classList.remove('selected');
+    });
+    
+    // Select first N months
+    checkboxes.forEach((label, index) => {
+        if (index < n) {
+            const cb = label.querySelector('input');
+            cb.checked = true;
+            label.classList.add('selected');
+        }
+    });
+}
+
+// Month checkbox toggle
+document.querySelectorAll('.month-checkbox').forEach(label => {
+    label.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'INPUT') {
+            const checkbox = this.querySelector('input');
+            checkbox.checked = !checkbox.checked;
+        }
+        this.classList.toggle('selected', this.querySelector('input').checked);
+        // Clear the quick select dropdown when manually changing
+        document.getElementById('monthCountSelect').value = '';
+    });
+});
+
+// Toggle all months
+function toggleAllMonths() {
+    const checkboxes = document.querySelectorAll('.month-checkbox input');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    
+    checkboxes.forEach(cb => {
+        cb.checked = !allChecked;
+        cb.closest('.month-checkbox').classList.toggle('selected', !allChecked);
+    });
+    
+    // Update quick select dropdown
+    document.getElementById('monthCountSelect').value = allChecked ? '' : '12';
+}
+
+// Apply filters
+function applyFilters() {
+    const year = document.getElementById('yearSelector').value;
+    const center = document.getElementById('centerSelect').value;
+    const selectedMonths = Array.from(document.querySelectorAll('.month-checkbox input:checked'))
+        .map(cb => cb.value);
+    
+    let url = `/analytics?year=${year}&center=${center}`;
+    if (selectedMonths.length > 0 && selectedMonths.length < 12) {
+        url += `&months=${selectedMonths.join(',')}`;
+    }
+    
+    window.location.href = url;
+}
+
+// Reset filters
+function resetFilters() {
+    window.location.href = `/analytics?year={{ year }}`;
+}
+</script>
+
+</body>
+</html>
