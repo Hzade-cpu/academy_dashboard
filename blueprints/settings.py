@@ -158,3 +158,94 @@ def download_backup(filename):
     else:
         flash("Backup file not found", "error")
         return redirect("/backups")
+
+
+# ================= DATA IMPORT/EXPORT ROUTES =================
+
+@settings_bp.route("/import-data", methods=["GET", "POST"])
+@login_required
+def import_data():
+    """Import data from JSON."""
+    message = None
+    error = None
+    
+    if request.method == "POST":
+        try:
+            json_data = request.form.get("json_data", "")
+            if not json_data:
+                error = "Please paste JSON data"
+            else:
+                import json
+                data = json.loads(json_data)
+                
+                conn = get_db()
+                cur = conn.cursor()
+                
+                # Import centers (skip id=1 which is default)
+                for center in data.get("centers", []):
+                    if center["id"] != 1 and center["name"]:
+                        cur.execute("INSERT INTO centers(name) VALUES(?)", (center["name"],))
+                
+                # Get new center ID mapping (simplified - assumes sequential)
+                cur.execute("SELECT id, name FROM centers")
+                center_map = {row["name"]: row["id"] for row in cur.fetchall()}
+                
+                # Import coaches
+                for coach in data.get("coaches", []):
+                    # Find center by looking at original data
+                    orig_center = next((c for c in data["centers"] if c["id"] == coach["center_id"]), None)
+                    if orig_center and orig_center["name"] in center_map:
+                        new_center_id = center_map[orig_center["name"]]
+                        cur.execute("INSERT INTO coaches(center_id, name) VALUES(?, ?)", 
+                                   (new_center_id, coach["name"]))
+                
+                # Import monthly data
+                for md in data.get("monthly_data", []):
+                    orig_center = next((c for c in data["centers"] if c["id"] == md["center_id"]), None)
+                    if orig_center and orig_center["name"] in center_map:
+                        new_center_id = center_map[orig_center["name"]]
+                        cur.execute("""INSERT INTO monthly_data(center_id, month, year, revenue, target) 
+                                      VALUES(?, ?, ?, ?, ?)""",
+                                   (new_center_id, md["month"], md["year"], md["revenue"], md["target"]))
+                
+                conn.commit()
+                conn.close()
+                message = "Data imported successfully!"
+                
+        except json.JSONDecodeError:
+            error = "Invalid JSON format"
+        except Exception as e:
+            error = f"Import failed: {str(e)}"
+    
+    return f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Import Data</title>
+        <style>
+            body {{ font-family: Arial; background: #1a1a2e; color: #eee; padding: 40px; }}
+            .container {{ max-width: 800px; margin: auto; }}
+            textarea {{ width: 100%; height: 400px; background: #16213e; color: #eee; border: 1px solid #0f3460; padding: 15px; font-family: monospace; }}
+            button {{ background: #e94560; color: white; padding: 15px 30px; border: none; cursor: pointer; font-size: 16px; margin-top: 15px; }}
+            .message {{ padding: 15px; margin: 15px 0; border-radius: 5px; }}
+            .success {{ background: #1b4332; }}
+            .error {{ background: #7f1d1d; }}
+            a {{ color: #e94560; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>📥 Import Data</h1>
+            <p><a href="/dashboard">← Back to Dashboard</a></p>
+            {"<div class='message success'>✅ " + message + "</div>" if message else ""}
+            {"<div class='message error'>❌ " + error + "</div>" if error else ""}
+            <form method="POST">
+                <p>Paste your exported JSON data below:</p>
+                <textarea name="json_data" placeholder="Paste JSON here..."></textarea>
+                <br>
+                <button type="submit">Import Data</button>
+            </form>
+        </div>
+    </body>
+    </html>
+    '''
