@@ -11,18 +11,21 @@ from functools import wraps
 from flask import session, redirect, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# Try to import PostgreSQL support
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+    POSTGRES_AVAILABLE = True
+except ImportError:
+    POSTGRES_AVAILABLE = False
+
 # Check if we're using PostgreSQL (production) or SQLite (local)
 DATABASE_URL = os.environ.get('DATABASE_URL')
-IS_POSTGRES = DATABASE_URL is not None
+IS_POSTGRES = DATABASE_URL is not None and POSTGRES_AVAILABLE
 
 DB_PATH = "instance/academy.db"
 BACKUP_DIR = "backups"  # Dedicated backup folder - DO NOT DELETE
 MAX_BACKUPS = 20  # Keep last 20 backups
-
-# PostgreSQL support
-if IS_POSTGRES:
-    import psycopg2
-    from psycopg2.extras import RealDictCursor
 
 
 def create_backup(reason="manual"):
