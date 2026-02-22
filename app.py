@@ -17,7 +17,7 @@ import secrets
 from datetime import timedelta
 from werkzeug.security import generate_password_hash
 
-from utils import get_db, generate_csrf_token, create_backup
+from utils import get_db, generate_csrf_token, create_backup, IS_POSTGRES
 from blueprints import auth_bp, dashboard_bp, coaches_bp, analytics_bp, settings_bp, leaves_bp
 
 
@@ -80,106 +80,173 @@ def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # Centers
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS centers(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT
-        )
-    """)
+    if IS_POSTGRES:
+        # PostgreSQL schema
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS centers(
+                id SERIAL PRIMARY KEY,
+                name TEXT
+            )
+        """)
 
-    # Monthly data (with year support)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS monthly_data(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            center_id INTEGER,
-            month TEXT,
-            year INTEGER DEFAULT 2026,
-            revenue REAL DEFAULT 0,
-            target REAL DEFAULT 0
-        )
-    """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS monthly_data(
+                id SERIAL PRIMARY KEY,
+                center_id INTEGER,
+                month TEXT,
+                year INTEGER DEFAULT 2026,
+                revenue REAL DEFAULT 0,
+                target REAL DEFAULT 0
+            )
+        """)
 
-    # Coaches (master list)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS coaches(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            center_id INTEGER,
-            name TEXT
-        )
-    """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS coaches(
+                id SERIAL PRIMARY KEY,
+                center_id INTEGER,
+                name TEXT
+            )
+        """)
 
-    # Coach salaries per month (with year support)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS coach_salaries(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            coach_id INTEGER,
-            month TEXT,
-            year INTEGER DEFAULT 2026,
-            salary REAL DEFAULT 0,
-            FOREIGN KEY(coach_id) REFERENCES coaches(id)
-        )
-    """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS coach_salaries(
+                id SERIAL PRIMARY KEY,
+                coach_id INTEGER,
+                month TEXT,
+                year INTEGER DEFAULT 2026,
+                salary REAL DEFAULT 0
+            )
+        """)
 
-    # Coach leaves tracking
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS coach_leaves(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            coach_id INTEGER,
-            from_date DATE NOT NULL,
-            to_date DATE NOT NULL,
-            leave_type TEXT DEFAULT 'Casual',
-            remarks TEXT,
-            year INTEGER DEFAULT 2026,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(coach_id) REFERENCES coaches(id)
-        )
-    """)
-    
-    # Migration: Add from_date and to_date columns if they don't exist (for existing databases)
-    cur.execute("PRAGMA table_info(coach_leaves)")
-    columns = [col[1] for col in cur.fetchall()]
-    
-    if 'leave_date' in columns and 'from_date' not in columns:
-        # Migrate from old schema
-        cur.execute("ALTER TABLE coach_leaves ADD COLUMN from_date DATE")
-        cur.execute("ALTER TABLE coach_leaves ADD COLUMN to_date DATE")
-        cur.execute("UPDATE coach_leaves SET from_date = leave_date, to_date = leave_date WHERE from_date IS NULL")
-    elif 'from_date' not in columns:
-        cur.execute("ALTER TABLE coach_leaves ADD COLUMN from_date DATE")
-        cur.execute("ALTER TABLE coach_leaves ADD COLUMN to_date DATE")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS coach_leaves(
+                id SERIAL PRIMARY KEY,
+                coach_id INTEGER,
+                from_date DATE,
+                to_date DATE,
+                leave_type TEXT DEFAULT 'Casual',
+                remarks TEXT,
+                year INTEGER DEFAULT 2026,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
 
-    # Users table for secure authentication
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS users(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users(
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
 
-    # Add year column to existing tables if not exists
-    try:
-        cur.execute("ALTER TABLE monthly_data ADD COLUMN year INTEGER DEFAULT 2026")
-    except:
-        pass
-    try:
-        cur.execute("ALTER TABLE coach_salaries ADD COLUMN year INTEGER DEFAULT 2026")
-    except:
-        pass
+        # Ensure at least one center exists
+        cur.execute("SELECT COUNT(*) FROM centers")
+        if cur.fetchone()[0] == 0:
+            cur.execute("INSERT INTO centers(name) VALUES('Center 1')")
 
-    # Ensure at least one center exists
-    cur.execute("SELECT COUNT(*) FROM centers")
-    if cur.fetchone()[0] == 0:
-        cur.execute("INSERT INTO centers(name) VALUES('Center 1')")
+        # Create default admin user if NO users exist
+        cur.execute("SELECT COUNT(*) FROM users")
+        if cur.fetchone()[0] == 0:
+            default_hash = generate_password_hash("admin", method='pbkdf2:sha256')
+            cur.execute("INSERT INTO users(username, password_hash) VALUES(%s, %s)", 
+                       ("admin", default_hash))
 
-    # Create default admin user if NO users exist (first time setup only)
-    cur.execute("SELECT COUNT(*) FROM users")
-    if cur.fetchone()[0] == 0:
-        default_hash = generate_password_hash("admin", method='pbkdf2:sha256')
-        cur.execute("INSERT INTO users(username, password_hash) VALUES(?, ?)", 
-                   ("admin", default_hash))
+    else:
+        # SQLite schema (local development)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS centers(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS monthly_data(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                center_id INTEGER,
+                month TEXT,
+                year INTEGER DEFAULT 2026,
+                revenue REAL DEFAULT 0,
+                target REAL DEFAULT 0
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS coaches(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                center_id INTEGER,
+                name TEXT
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS coach_salaries(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                coach_id INTEGER,
+                month TEXT,
+                year INTEGER DEFAULT 2026,
+                salary REAL DEFAULT 0,
+                FOREIGN KEY(coach_id) REFERENCES coaches(id)
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS coach_leaves(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                coach_id INTEGER,
+                from_date DATE NOT NULL,
+                to_date DATE NOT NULL,
+                leave_type TEXT DEFAULT 'Casual',
+                remarks TEXT,
+                year INTEGER DEFAULT 2026,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(coach_id) REFERENCES coaches(id)
+            )
+        """)
+        
+        # Migration: Add from_date and to_date columns if they don't exist (for existing databases)
+        cur.execute("PRAGMA table_info(coach_leaves)")
+        columns = [col[1] for col in cur.fetchall()]
+        
+        if 'leave_date' in columns and 'from_date' not in columns:
+            cur.execute("ALTER TABLE coach_leaves ADD COLUMN from_date DATE")
+            cur.execute("ALTER TABLE coach_leaves ADD COLUMN to_date DATE")
+            cur.execute("UPDATE coach_leaves SET from_date = leave_date, to_date = leave_date WHERE from_date IS NULL")
+        elif 'from_date' not in columns:
+            cur.execute("ALTER TABLE coach_leaves ADD COLUMN from_date DATE")
+            cur.execute("ALTER TABLE coach_leaves ADD COLUMN to_date DATE")
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # Add year column to existing tables if not exists
+        try:
+            cur.execute("ALTER TABLE monthly_data ADD COLUMN year INTEGER DEFAULT 2026")
+        except:
+            pass
+        try:
+            cur.execute("ALTER TABLE coach_salaries ADD COLUMN year INTEGER DEFAULT 2026")
+        except:
+            pass
+
+        # Ensure at least one center exists
+        cur.execute("SELECT COUNT(*) FROM centers")
+        if cur.fetchone()[0] == 0:
+            cur.execute("INSERT INTO centers(name) VALUES('Center 1')")
+
+        # Create default admin user if NO users exist (first time setup only)
+        cur.execute("SELECT COUNT(*) FROM users")
+        if cur.fetchone()[0] == 0:
+            default_hash = generate_password_hash("admin", method='pbkdf2:sha256')
+            cur.execute("INSERT INTO users(username, password_hash) VALUES(?, ?)", 
+                       ("admin", default_hash))
 
     conn.commit()
     conn.close()

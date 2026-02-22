@@ -11,9 +11,18 @@ from functools import wraps
 from flask import session, redirect, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# Check if we're using PostgreSQL (production) or SQLite (local)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+IS_POSTGRES = DATABASE_URL is not None
+
 DB_PATH = "instance/academy.db"
 BACKUP_DIR = "backups"  # Dedicated backup folder - DO NOT DELETE
 MAX_BACKUPS = 20  # Keep last 20 backups
+
+# PostgreSQL support
+if IS_POSTGRES:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
 
 
 def create_backup(reason="manual"):
@@ -123,13 +132,113 @@ MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_TIME = 300  # 5 minutes in seconds
 
 
+class DictRow(dict):
+    """A dict subclass that also allows attribute-style access for compatibility."""
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            # Support index-based access like sqlite3.Row
+            return list(self.values())[key]
+        return super().__getitem__(key)
+
+
+class PostgresCursorWrapper:
+    """Wrapper to make PostgreSQL cursor work like SQLite cursor."""
+    def __init__(self, cursor):
+        self._cursor = cursor
+    
+    def execute(self, query, params=None):
+        # Convert SQLite ? placeholders to PostgreSQL %s
+        query = query.replace("?", "%s")
+        if params:
+            self._cursor.execute(query, params)
+        else:
+            self._cursor.execute(query)
+        return self
+    
+    def fetchone(self):
+        row = self._cursor.fetchone()
+        if row is None:
+            return None
+        return DictRow(row)
+    
+    def fetchall(self):
+        rows = self._cursor.fetchall()
+        return [DictRow(row) for row in rows]
+    
+    def __getattr__(self, name):
+        return getattr(self._cursor, name)
+
+
+class PostgresConnectionWrapper:
+    """Wrapper to make PostgreSQL connection work like SQLite connection."""
+    def __init__(self, conn):
+        self._conn = conn
+    
+    def cursor(self):
+        return PostgresCursorWrapper(self._conn.cursor(cursor_factory=RealDictCursor))
+    
+    def commit(self):
+        self._conn.commit()
+    
+    def rollback(self):
+        self._conn.rollback()
+    
+    def close(self):
+        self._conn.close()
+    
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
+
+
 def get_db():
-    """Get database connection with Row factory."""
-    os.makedirs("instance", exist_ok=True)
-    conn = sqlite3.connect(DB_PATH, timeout=30)  # 30 second timeout to prevent locking
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")  # Better concurrent access
-    return conn
+    """Get database connection. Uses PostgreSQL in production, SQLite locally."""
+    if IS_POSTGRES:
+        # PostgreSQL connection for Railway (wrapped for SQLite compatibility)
+        conn = psycopg2.connect(DATABASE_URL)
+        conn.autocommit = False
+        return PostgresConnectionWrapper(conn)
+    else:
+        # SQLite connection for local development
+        os.makedirs("instance", exist_ok=True)
+        conn = sqlite3.connect(DB_PATH, timeout=30)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        return conn
+
+
+def db_execute(conn, query, params=None):
+    """Execute a query with proper parameter substitution for both databases."""
+    if IS_POSTGRES:
+        # Convert SQLite ? placeholders to PostgreSQL %s
+        query = query.replace("?", "%s")
+        # Convert AUTOINCREMENT to SERIAL (handled in init_db)
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+    else:
+        cur = conn.cursor()
+    
+    if params:
+        cur.execute(query, params)
+    else:
+        cur.execute(query)
+    return cur
+
+
+def db_fetchone(cur):
+    """Fetch one result with consistent dict-like access."""
+    row = cur.fetchone()
+    if row is None:
+        return None
+    if IS_POSTGRES:
+        return DictRow(row)
+    return row
+
+
+def db_fetchall(cur):
+    """Fetch all results with consistent dict-like access."""
+    rows = cur.fetchall()
+    if IS_POSTGRES:
+        return [DictRow(row) for row in rows]
+    return rows
 
 
 def is_locked_out(ip):
